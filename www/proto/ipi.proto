@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package ipi;
+
+// Registro de Atendimento Integrado (RAI)
+message RAI {
+    string id = 1;
+    string timestamp = 2;
+    string operator_id = 3;
+    string type = 4; // Tipo de ocorrência
+    string description = 5;
+    Location location = 6;
+    repeated Person persons = 7;
+    repeated Vehicle vehicles = 8;
+    bool synced = 9;
+}
+
+message Location {
+    double latitude = 1;
+    double longitude = 2;
+    string address_hint = 3;
+}
+
+message Person {
+    string cpf = 1;
+    string name = 2;
+    string role = 3; // Suspeito, Vítima, Testemunha
+    string observation = 4;
+}
+
+message Vehicle {
+    string plate = 1;
+    string model = 2;
+    string color = 3;
+    string status = 4; // Roubado, Regular
+}
+
+message SearchQuery {
+    string id = 1;
+    string query_type = 2; // PERSON, VEHICLE
+    string params = 3; // Plate or CPF
+}
