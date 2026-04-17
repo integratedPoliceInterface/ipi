@@ -15,22 +15,28 @@
 
 :root {
     /* Paleta de cores militar/tática */
-    --bg-primary: #080c08;
-    --bg-secondary: #0f1a0f;
+    --bg-primary: #121416;
+    --bg-secondary: #1a1d1f;
     --bg-elevated: #162016;
-    --bg-card: #1a261a;
+    --bg-card: #202427;
     --bg-input: #0d150d;
 
-    --green-neon: #00ff41;
-    --green-dim: #00cc33;
-    --green-dark: #004010;
+    --blue-primary: #1e3a5f;
+    --blue-light: #2c5a8a;
+    --brown-primary: #5a3e2b;
+    --brown-light: #7a5a3a;
+    --brown-clearer: #a8826d;
+    --green-neon: #3f8f4f;
+    --green-dim: #6fae7a;
+    --green-dark: #2e7d32;
     --yellow-alert: #f5c400;
     --red-danger: #ff3b30;
     --red-dim: #cc2a22;
     --blue-fallback: #0a7cff;
     --gray-muted: #4a5a4a;
-    --gray-text: #8a9e8a;
-    --white: #e8f5e8;
+    --gray-text: #a0a4a8;
+    --white: #dcdcdc;
+    --border-default: #2a2f33;
 
     --font-mono: "Share Tech Mono", monospace;
     --font-title: "Orbitron", monospace;
@@ -41,7 +47,7 @@
     --radius-lg: 16px;
 
     --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 12px rgba(0, 255, 65, 0.3);
+    --shadow-glow: 0 0 6px rgba(0, 0, 0, 0.3);
 
     --status-bar-h: 44px;
     --nav-h: 68px;
@@ -66,7 +72,7 @@ body {
     right: 0;
     height: var(--status-bar-h);
     background: var(--bg-secondary);
-    border-bottom: 1px solid var(--green-dark);
+    border-bottom: 1px solid #2c3e50;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -91,11 +97,11 @@ body {
 
 .texto-logo {
     font-family: var(--font-title);
-    font-size: 1rem;
+    font-size: 2rem;
     font-weight: 900;
-    color: var(--green-neon);
-    letter-spacing: 4px;
-    text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+    color: var(--white);
+    letter-spacing: 2px;
+    text-shadow: none;
 }
 
 .status-item {
@@ -189,14 +195,14 @@ body {
     justify-content: space-between;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--green-dark);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .titulo-tela {
     font-family: var(--font-title);
     font-size: 1rem;
     font-weight: 700;
-    color: var(--green-neon);
+    color: var(--blue-primary);
     letter-spacing: 2px;
 }
 
@@ -206,7 +212,7 @@ body {
     padding: 3px 8px;
     border-radius: 30px;
     background: var(--green-dark);
-    color: var(--green-neon);
+    color: var(--white);
     border: 1px solid var(--green-dim);
 }
 
@@ -227,7 +233,7 @@ body {
 /* ─── CARDS TÁTICOS ─── */
 .card-tactico {
     background: var(--bg-card);
-    border: 1px solid var(--green-dark);
+    border: 1px solid #2a2f33;
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 16px;
@@ -329,14 +335,14 @@ body {
 }
 
 .acao-primaria {
-    background: linear-gradient(135deg, #003010, #004818);
-    border: 1px solid var(--green-neon);
+    background: linear-gradient(135deg, #1f3d2b, #2e5a3a);
+    border: 1px solid var(--green-dim);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
 }
 
 .acao-secundaria {
-    background: linear-gradient(135deg, #0a0a20, #101030);
-    border: 1px solid var(--blue-fallback);
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+    border: 1px solid var(--blue-light);
     box-shadow: 0 0 20px rgba(10, 124, 255, 0.12);
 }
 
@@ -438,7 +444,7 @@ body {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     color: var(--gray-text);
-    border: 1px solid #1a2a1a;
+    border-color: var(--brown-primary);
     padding: 4px 8px;
     border-radius: 20px;
     background: var(--bg-secondary);
@@ -451,7 +457,7 @@ body {
 
 .secao-formulario {
     background: var(--bg-card);
-    border: 1px solid var(--green-dark);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 16px;
@@ -461,11 +467,11 @@ body {
     font-family: var(--font-title);
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--green-dim);
+    color: var(--brown-light);
     letter-spacing: 2px;
     margin-bottom: 14px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--green-dark);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .grupo-formulario {
@@ -578,10 +584,10 @@ textarea.controle-formulario {
     display: block;
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #004818, #006420);
-    border: 1px solid var(--green-neon);
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+    border: 1px solid var(--blue-light);
     border-radius: var(--radius-sm);
-    color: var(--green-neon);
+    color: var(--white);
     font-family: var(--font-title);
     font-size: 0.95rem;
     font-weight: 700;
@@ -596,18 +602,18 @@ textarea.controle-formulario {
 }
 
 .btn-primario:hover {
-    background: linear-gradient(135deg, #006420, #008430);
-    box-shadow: var(--shadow-glow);
+    background: linear-gradient(135deg, var(--blue-light), #42a5f5);
+    box-shadow: 0 0 8px rgba(10, 124, 255, 0.4);
 }
 
 .tema-diurno .btn-primario {
-    background: linear-gradient(135deg, #009933, #00b33c);
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
     color: #ffffff;
-    border-color: #009933;
+    border-color: var(--blue-light);
 }
 
 .tema-diurno .btn-primario:hover {
-    background: linear-gradient(135deg, #00b33c, #00cc44);
+    background: linear-gradient(135deg, var(--blue-light), #42a5f5);
 }
 
 .btn-secundario {
@@ -635,10 +641,10 @@ textarea.controle-formulario {
     display: block;
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #3a0000, #6a0000);
+    background: var(--red-dim);
     border: 1px solid var(--red-danger);
     border-radius: var(--radius-sm);
-    color: var(--red-danger);
+    color: var(--white);
     font-family: var(--font-title);
     font-size: 0.9rem;
     font-weight: 700;
@@ -754,7 +760,7 @@ textarea.controle-formulario {
     background: var(--green-dark);
     border: 1px solid var(--green-dim);
     border-radius: var(--radius-sm);
-    color: var(--green-neon);
+    color: var(--white);
     font-family: var(--font-mono);
     font-size: 0.85rem;
     cursor: pointer;
@@ -780,7 +786,7 @@ textarea.controle-formulario {
 
 .card-resultado {
     background: var(--bg-card);
-    border: 1px solid var(--green-dark);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 12px;
@@ -875,7 +881,7 @@ textarea.controle-formulario {
 
 .item-historico {
     background: var(--bg-card);
-    border: 1px solid var(--green-dark);
+    border: 1px solid var(--border-default);
     border-left: 3px solid var(--green-dim);
     border-radius: var(--radius-md);
     padding: 14px;
@@ -960,7 +966,7 @@ textarea.controle-formulario {
 
 .secao-configuracoes {
     background: var(--bg-card);
-    border: 1px solid var(--green-dark);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 16px;
@@ -970,11 +976,11 @@ textarea.controle-formulario {
     font-family: var(--font-title);
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--green-dim);
+    color: var(--brown-light);
     letter-spacing: 2px;
     margin-bottom: 14px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--green-dark);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .switch-modo-teste {
@@ -1043,7 +1049,7 @@ textarea.controle-formulario {
     right: 0;
     height: var(--nav-h);
     background: var(--bg-secondary);
-    border-top: 1px solid var(--green-dark);
+    border-top: 1px solid var(--border-default);
     display: flex;
     z-index: 100;
 }
@@ -1088,14 +1094,14 @@ textarea.controle-formulario {
 }
 
 .navegacao-fab {
-    color: var(--green-neon) !important;
+    color: var(--gray-text) !important;
 }
 
 .navegacao-fab .navegacao-icon {
     background: var(--green-dark);
     border-radius: 50%;
     padding: 4px;
-    border: 1px solid var(--green-dim);
+    border: 1px solid var(--gray-text);
     width: 36px;
     height: 36px;
 }
@@ -1296,9 +1302,9 @@ textarea.controle-formulario {
 }
 
 .botao-teste-modo.ativo {
+    background: color-mix(in srgb, var(--cor-ativa) 15%, transparent);
     border-color: var(--cor-ativa);
     color: var(--cor-ativa);
-    background: color-mix(in srgb, var(--cor-ativa) 15%, transparent);
     box-shadow: 0 0 10px var(--cor-ativa);
 }
 
