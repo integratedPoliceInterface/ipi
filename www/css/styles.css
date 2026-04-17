@@ -32,9 +32,9 @@
     --gray-text: #8a9e8a;
     --white: #e8f5e8;
 
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-title: 'Orbitron', monospace;
-    --font-body: 'Rajdhani', sans-serif;
+    --font-mono: "Share Tech Mono", monospace;
+    --font-title: "Orbitron", monospace;
+    --font-body: "Rajdhani", sans-serif;
 
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -65,7 +65,7 @@ body {
     left: 0;
     right: 0;
     height: var(--status-bar-h);
-    background: #020602;
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--green-dark);
     display: flex;
     align-items: center;
@@ -131,7 +131,6 @@ body {
 }
 
 @keyframes pulse {
-
     0%,
     100% {
         opacity: 1;
@@ -143,7 +142,6 @@ body {
 }
 
 @keyframes blink {
-
     0%,
     100% {
         opacity: 1;
@@ -174,7 +172,9 @@ body {
     opacity: 0;
     pointer-events: none;
     transform: translateX(20px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition:
+            opacity 0.25s ease,
+            transform 0.25s ease;
 }
 
 .tela.ativa {
@@ -237,13 +237,18 @@ body {
 }
 
 .card-tactico::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--green-neon), transparent);
+    background: linear-gradient(
+            90deg,
+            transparent,
+            var(--green-neon),
+            transparent
+    );
     opacity: 0.4;
 }
 
@@ -312,7 +317,9 @@ body {
     border: none;
     cursor: pointer;
     text-align: left;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
     position: relative;
     overflow: hidden;
 }
@@ -331,6 +338,27 @@ body {
     background: linear-gradient(135deg, #0a0a20, #101030);
     border: 1px solid var(--blue-fallback);
     box-shadow: 0 0 20px rgba(10, 124, 255, 0.12);
+}
+
+/* ─── AÇÕES RÁPIDAS - MODO DIURNO ─── */
+.tema-diurno .acao-primaria {
+    background: linear-gradient(135deg, #009933, #00b33c);
+    border-color: #009933;
+}
+
+.tema-diurno .acao-secundaria {
+    background: linear-gradient(135deg, #0a7cff, #3a9cff);
+    border-color: #0a7cff;
+}
+
+.tema-diurno .btn-acao-label,
+.tema-diurno .btn-acao-sub {
+    color: #ffffff;
+}
+
+.tema-diurno .acao-primaria .btn-acao-icon,
+.tema-diurno .acao-secundaria .btn-acao-icon {
+    color: #ffffff;
 }
 
 .btn-acao-icon {
@@ -572,6 +600,16 @@ textarea.controle-formulario {
     box-shadow: var(--shadow-glow);
 }
 
+.tema-diurno .btn-primario {
+    background: linear-gradient(135deg, #009933, #00b33c);
+    color: #ffffff;
+    border-color: #009933;
+}
+
+.tema-diurno .btn-primario:hover {
+    background: linear-gradient(135deg, #00b33c, #00cc44);
+}
+
 .btn-secundario {
     display: block;
     width: 100%;
@@ -632,6 +670,16 @@ textarea.controle-formulario {
 .btn-perigo-outline:hover {
     border-color: var(--red-danger);
     color: var(--red-danger);
+}
+
+.tema-diurno .btn-perigo {
+    background: linear-gradient(135deg, #cc2a22, #e03a30);
+    color: #ffffff;
+    border-color: #cc2a22;
+}
+
+.tema-diurno .btn-perigo:hover {
+    background: linear-gradient(135deg, #e03a30, #ff3b30);
 }
 
 .btn-icon {
@@ -994,7 +1042,7 @@ textarea.controle-formulario {
     left: 0;
     right: 0;
     height: var(--nav-h);
-    background: #020602;
+    background: var(--bg-secondary);
     border-top: 1px solid var(--green-dark);
     display: flex;
     z-index: 100;
@@ -1023,7 +1071,7 @@ textarea.controle-formulario {
 }
 
 .botao-navegacao.ativo::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 20%;
@@ -1069,7 +1117,9 @@ textarea.controle-formulario {
     font-size: 0.85rem;
     color: var(--white);
     margin-bottom: 8px;
-    animation: slideUp 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+    animation:
+            slideUp 0.3s ease,
+            fadeOut 0.5s ease 2.5s forwards;
     pointer-events: none;
 }
 
@@ -1092,6 +1142,37 @@ textarea.controle-formulario {
     background: rgba(80, 70, 0, 0.95);
     border: 1px solid var(--yellow-alert);
     color: var(--yellow-alert);
+}
+
+/* ─── TOASTS MODO DIURNO ─── */
+
+.tema-diurno .toast {
+    color: #111;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tema-diurno .toast-sucesso {
+    background: #d4f8e0;
+    color: #006622;
+    border: 1px solid #00cc33;
+}
+
+.tema-diurno .toast-erro {
+    background: #ffd6d3;
+    color: #991f1a;
+    border: 1px solid #ff3b30;
+}
+
+.tema-diurno .toast-info {
+    background: #d6e9ff;
+    color: #084a99;
+    border: 1px solid #0a7cff;
+}
+
+.tema-diurno .toast-aviso {
+    background: #fff3cc;
+    color: #7a5a00;
+    border: 1px solid #f5c400;
 }
 
 @keyframes slideUp {
@@ -1173,7 +1254,7 @@ textarea.controle-formulario {
 }
 
 /* ─── ÁREA SEGURA (iOS) ─── */
-@supports(padding: max(0px)) {
+@supports (padding: max(0px)) {
     #barra-status {
         padding-top: env(safe-area-inset-top);
         height: calc(var(--status-bar-h) + env(safe-area-inset-top));
@@ -1188,4 +1269,102 @@ textarea.controle-formulario {
         top: calc(var(--status-bar-h) + env(safe-area-inset-top));
         bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
     }
+}
+
+/* ─── TEMA DIURNO ─── */
+.tema-diurno {
+    --bg-primary: #f4f6f4;
+    --bg-secondary: #e8ebe8;
+    --bg-elevated: #dde2dd;
+    --bg-card: #ffffff;
+    --bg-input: #f0f2f0;
+
+    --white: #0a0a0a;
+    --gray-text: #3a4a3a;
+    --gray-muted: #6a7a6a;
+
+    --green-neon: #007f2a;
+    --green-dim: #009933;
+    --green-dark: #cde5cd;
+
+    --shadow-card: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── TEMA NOTURNO (já é o padrão, mas deixamos explícito) ─── */
+.tema-noturno {
+    /* Padrão já definido anteriormente */
+}
+
+.botao-teste-modo.ativo {
+    border-color: var(--cor-ativa);
+    color: var(--cor-ativa);
+    background: color-mix(in srgb, var(--cor-ativa) 15%, transparent);
+    box-shadow: 0 0 10px var(--cor-ativa);
+}
+
+/* ─── HOVER BOTÕES DE APARÊNCIA ─── */
+.diurno-btn:hover {
+    border-color: var(--yellow-alert);
+    color: var(--yellow-alert);
+}
+
+.noturno-btn:hover {
+    border-color: var(--blue-fallback);
+    color: var(--blue-fallback);
+}
+
+.auto-btn:hover {
+    border-color: var(--green-dim);
+    color: var(--green-neon);
+}
+
+.dispositivo-btn:hover {
+    border-color: #9b59b6;
+    color: #9b59b6;
+}
+
+.diurno-btn {
+    --cor-ativa: var(--yellow-alert);
+}
+
+.noturno-btn {
+    --cor-ativa: var(--blue-fallback);
+}
+
+.auto-btn {
+    --cor-ativa: var(--green-neon);
+}
+
+.dispositivo-btn {
+    --cor-ativa: #9b59b6;
+}
+
+.img-instituicao img {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tema-diurno .img-instituicao img {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#brasao-pmgo {
+    border-radius: 50%;
+    max-width: 120px;
+}
+
+#brasao-pmgo-rural {
+    max-width: 140px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+    box-shadow: none;
+}
+
+.img-instituicao {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
 }

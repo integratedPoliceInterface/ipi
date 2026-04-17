@@ -1,354 +1,502 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8" />
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+    />
     <title>IPI - Interface Policial Integrada</title>
-    <meta name="description" content="Interface Policial Integrada - Sistema tático de campo para operações rurais.">
-    <link rel="stylesheet" href="./css/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <meta
+            name="description"
+            content="Interface Policial Integrada - Sistema tático de campo para operações rurais."
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
-        rel="stylesheet">
+            href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap"
+            rel="stylesheet"
+    />
+    <link rel="icon" href="./img/image.png" />
 </head>
 
 <body>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- BARRA DE STATUS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="status-barra">
+    <div class="status-esquerda">
+        <span class="status-item" id="modo-status">
+          <span class="status-ponto ponto-nuvem"></span>
+          <span id="modo-rotulo">NUVEM</span>
+        </span>
+        <span class="status-item" id="status-gps">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path
+                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+            />
+          </svg>
+          <span id="rotulo-gps">GPS</span>
+        </span>
+    </div>
+    <div class="status-centro">
+        <span class="texto-logo">IPI</span>
+    </div>
+    <div class="status-direita">
+        <span class="status-item" id="status-sincronizacao">
+          <span id="contagem-sync">0</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path
+                    d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </span>
+        <span class="status-item">
+          <span id="exibicao-relogio">--:--</span>
+        </span>
+    </div>
+</div>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- BARRA DE STATUS -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div id="status-barra">
-        <div class="status-esquerda">
-            <span class="status-item" id="modo-status">
-                <span class="status-ponto ponto-nuvem"></span>
-                <span id="modo-rotulo">NUVEM</span>
-            </span>
-            <span class="status-item" id="status-gps">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+<!-- CONTAINER PRINCIPAL -->
+<div id="container-app">
+    <!-- ─── TELA: DASHBOARD (início) ─── -->
+    <div class="tela ativa" id="tela-inicio">
+        <div class="cabecalho-tela">
+            <h1 class="titulo-tela">PAINEL TÁTICO</h1>
+            <div class="badge-operador" id="badge-operador">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path
-                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                    />
                 </svg>
-                <span id="rotulo-gps">GPS</span>
-            </span>
+                <span id="nome-operador">POLICIAL</span>
+            </div>
         </div>
-        <div class="status-centro">
-            <span class="texto-logo">IPI</span>
+
+        <!-- CARD DE MODO -->
+        <div class="card-tactico card-modo" id="card-modo">
+            <div class="icon-row-modo">
+                <div class="pill-modo modo-nuvem modo-ativo" id="pill-nuvem">
+                    <span>☁ NUVEM</span>
+                </div>
+                <div class="pill-modo modo-contingencia" id="pill-contingencia">
+                    <span>📱 SMS</span>
+                </div>
+                <div class="pill-modo modo-apagao" id="pill-apagao">
+                    <span>⚡ BLACKOUT</span>
+                </div>
+            </div>
+            <div class="descricao-modo" id="modo-descricao">
+                Sincronizando com servidor central SSP-GO
+            </div>
         </div>
-        <div class="status-direita">
-            <span class="status-item" id="status-sincronizacao">
-                <span id="contagem-sync">0</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                        d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
-                </svg>
-            </span>
-            <span class="status-item">
-                <span id="exibicao-relogio">--:--</span>
-            </span>
+
+        <!-- AÇÕES RÁPIDAS -->
+        <div class="acoes-rapidas">
+            <button class="btn-acao acao-primaria" id="btn-novo-rai">
+                <div class="btn-acao-icon">＋</div>
+                <div class="btn-acao-label">NOVO RAI</div>
+                <div class="btn-acao-sub">Registrar Ocorrência</div>
+            </button>
+            <button class="btn-acao acao-secundaria" id="btn-busca-rapida">
+                <div class="btn-acao-icon">⌁</div>
+                <div class="btn-acao-label">CONSULTAR</div>
+                <div class="btn-acao-sub">Placa / CPF / Nome</div>
+            </button>
+        </div>
+
+        <!-- GRID DE ESTATÍSTICAS -->
+        <div class="grid-estatisticas">
+            <div class="card-estatistica">
+                <div class="valor-estatistica" id="estat-pendente">0</div>
+                <div class="rotulo-estatistica">RAIs Pendentes</div>
+            </div>
+            <div class="card-estatistica">
+                <div class="valor-estatistica" id="estat-sincronizado">0</div>
+                <div class="rotulo-estatistica">Sincronizados</div>
+            </div>
+            <div class="card-estatistica">
+                <div class="valor-estatistica" id="estat-veiculos">0</div>
+                <div class="rotulo-estatistica">Veículos Cache</div>
+            </div>
+            <div class="card-estatistica">
+                <div class="valor-estatistica" id="estat-pessoas">0</div>
+                <div class="rotulo-estatistica">Pessoas Cache</div>
+            </div>
+        </div>
+
+        <!-- Imagens da instituição -->
+        <div class="img-instituicao">
+            <img
+                    src="./img/Brasao_PMGO.png"
+                    alt="Brasão Polícia Militar de Goiás"
+                    id="brasao-pmgo"
+            />
+            <img
+                    src="./img/brasao-pmgo-rural.webp"
+                    alt="Brasão Patrulha Rural"
+                    id="brasao-pmgo-rural"
+            />
+        </div>
+
+        <!-- BARRA DE ALERTA -->
+        <div class="barra-alerta" id="barra-alerta" style="display: none"></div>
+    </div>
+
+    <!-- ─── TELA: REGISTRO DE RAI ─── -->
+    <div class="tela" id="tela-rai">
+        <div class="cabecalho-tela">
+            <button class="btn-voltar" id="voltar-rai">← VOLTAR</button>
+            <h1 class="titulo-tela">NOVO RAI</h1>
+            <span class="badge-tela" id="badge-modo-rai">NUVEM</span>
+        </div>
+        <div class="container-formulario">
+            <div class="secao-formulario">
+                <div class="titulo-secao-formulario">
+                    IDENTIFICAÇÃO DA OCORRÊNCIA
+                </div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="tipo-rai"
+                    >Tipo de Ocorrência *</label
+                    >
+                    <select class="controle-formulario" id="tipo-rai">
+                        <option value="">Selecione...</option>
+                        <option value="Furto">Furto</option>
+                        <option value="Roubo">Roubo</option>
+                        <option value="Homicídio">Homicídio</option>
+                        <option value="Tráfico">Tráfico de Entorpecentes</option>
+                        <option value="Porte Ilegal">Porte Ilegal de Arma</option>
+                        <option value="Violência Doméstica">Violência Doméstica</option>
+                        <option value="Acidentes">Acidente de Trânsito</option>
+                        <option value="Pertubação">Perturbação da Ordem</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="desc-rai"
+                    >Descrição *</label
+                    >
+                    <textarea
+                            class="controle-formulario"
+                            id="desc-rai"
+                            rows="4"
+                            placeholder="Descreva a ocorrência com detalhes..."
+                    ></textarea>
+                </div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="endereco-rai"
+                    >Local / Endereço</label
+                    >
+                    <input
+                            class="controle-formulario"
+                            type="text"
+                            id="endereco-rai"
+                            placeholder="Logradouro, bairro, município"
+                    />
+                </div>
+                <div class="linha-formulario">
+                    <div class="grupo-formulario metade">
+                        <label class="rotulo-formulario" for="lat-rai">Latitude</label>
+                        <input
+                                class="controle-formulario"
+                                type="number"
+                                id="lat-rai"
+                                placeholder="Auto"
+                                readonly
+                        />
+                    </div>
+                    <div class="grupo-formulario metade">
+                        <label class="rotulo-formulario" for="lng-rai">Longitude</label>
+                        <input
+                                class="controle-formulario"
+                                type="number"
+                                id="lng-rai"
+                                placeholder="Auto"
+                                readonly
+                        />
+                    </div>
+                </div>
+                <button class="btn-secundario" id="btn-capturar-gps">
+                    📍 CAPTURAR GPS AGORA
+                </button>
+            </div>
+
+            <div class="secao-formulario">
+                <div class="titulo-secao-formulario">ENVOLVIDOS</div>
+                <div id="lista-pessoas"></div>
+                <button
+                        class="btn-secundario btn-adicionar-pessoa"
+                        id="btn-add-pessoa"
+                >
+                    + Adicionar Pessoa
+                </button>
+            </div>
+
+            <div class="secao-formulario">
+                <div class="titulo-secao-formulario">VEÍCULOS</div>
+                <div id="lista-veiculos"></div>
+                <button
+                        class="btn-secundario btn-adicionar-veiculo"
+                        id="btn-add-veiculo"
+                >
+                    + Adicionar Veículo
+                </button>
+            </div>
+
+            <div class="secao-formulario">
+                <div class="titulo-secao-formulario">OBSERVAÇÕES FINAIS</div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="obs-rai"
+                    >Observações Adicionais</label
+                    >
+                    <textarea
+                            class="controle-formulario"
+                            id="obs-rai"
+                            rows="3"
+                            placeholder="Informações complementares..."
+                    ></textarea>
+                </div>
+            </div>
+
+            <div class="acoes-formulario">
+                <button class="btn-perigo" id="btn-cancelar-rai">CANCELAR</button>
+                <button class="btn-primario" id="btn-salvar-rai">
+                    ✓ SALVAR REGISTRO
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- CONTAINER PRINCIPAL -->
-    <div id="container-app">
-
-        <!-- ─── TELA: DASHBOARD (início) ─── -->
-        <div class="tela ativa" id="tela-inicio">
-            <div class="cabecalho-tela">
-                <h1 class="titulo-tela">PAINEL TÁTICO</h1>
-                <div class="badge-operador" id="badge-operador">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                    <span id="nome-operador">POLICIAL</span>
-                </div>
-            </div>
-
-            <!-- CARD DE MODO -->
-            <div class="card-tactico card-modo" id="card-modo">
-                <div class="icon-row-modo">
-                    <div class="pill-modo modo-nuvem modo-ativo" id="pill-nuvem">
-                        <span>☁ NUVEM</span>
-                    </div>
-                    <div class="pill-modo modo-contingencia" id="pill-contingencia">
-                        <span>📱 SMS</span>
-                    </div>
-                    <div class="pill-modo modo-apagao" id="pill-apagao">
-                        <span>⚡ BLACKOUT</span>
-                    </div>
-                </div>
-                <div class="descricao-modo" id="modo-descricao">
-                    Sincronizando com servidor central SSP-GO
-                </div>
-            </div>
-
-            <!-- AÇÕES RÁPIDAS -->
-            <div class="acoes-rapidas">
-                <button class="btn-acao acao-primaria" id="btn-novo-rai">
-                    <div class="btn-acao-icon">＋</div>
-                    <div class="btn-acao-label">NOVO RAI</div>
-                    <div class="btn-acao-sub">Registrar Ocorrência</div>
-                </button>
-                <button class="btn-acao acao-secundaria" id="btn-busca-rapida">
-                    <div class="btn-acao-icon">⌁</div>
-                    <div class="btn-acao-label">CONSULTAR</div>
-                    <div class="btn-acao-sub">Placa / CPF / Nome</div>
-                </button>
-            </div>
-
-            <!-- GRID DE ESTATÍSTICAS -->
-            <div class="grid-estatisticas">
-                <div class="card-estatistica">
-                    <div class="valor-estatistica" id="estat-pendente">0</div>
-                    <div class="rotulo-estatistica">RAIs Pendentes</div>
-                </div>
-                <div class="card-estatistica">
-                    <div class="valor-estatistica" id="estat-sincronizado">0</div>
-                    <div class="rotulo-estatistica">Sincronizados</div>
-                </div>
-                <div class="card-estatistica">
-                    <div class="valor-estatistica" id="estat-veiculos">0</div>
-                    <div class="rotulo-estatistica">Veículos Cache</div>
-                </div>
-                <div class="card-estatistica">
-                    <div class="valor-estatistica" id="estat-pessoas">0</div>
-                    <div class="rotulo-estatistica">Pessoas Cache</div>
-                </div>
-            </div>
-
-            <!-- BARRA DE ALERTA -->
-            <div class="barra-alerta" id="barra-alerta" style="display:none;"></div>
+    <!-- ─── TELA: BUSCA / CONSULTA ─── -->
+    <div class="tela" id="tela-busca">
+        <div class="cabecalho-tela">
+            <button class="btn-voltar" id="voltar-busca">← VOLTAR</button>
+            <h1 class="titulo-tela">CONSULTA TÁTICA</h1>
+            <span class="badge-tela" id="badge-modo-busca">NUVEM</span>
         </div>
-
-        <!-- ─── TELA: REGISTRO DE RAI ─── -->
-        <div class="tela" id="tela-rai">
-            <div class="cabecalho-tela">
-                <button class="btn-voltar" id="voltar-rai">← VOLTAR</button>
-                <h1 class="titulo-tela">NOVO RAI</h1>
-                <span class="badge-tela" id="badge-modo-rai">NUVEM</span>
+        <div class="container-busca">
+            <div class="abas-busca">
+                <button
+                        class="aba-busca ativa"
+                        data-tipo="veiculo"
+                        id="aba-veiculo"
+                >
+                    🚗 VEÍCULO
+                </button>
+                <button class="aba-busca" data-tipo="pessoa" id="aba-pessoa">
+                    👤 PESSOA
+                </button>
             </div>
-            <div class="container-formulario">
-                <div class="secao-formulario">
-                    <div class="titulo-secao-formulario">IDENTIFICAÇÃO DA OCORRÊNCIA</div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="tipo-rai">Tipo de Ocorrência *</label>
-                        <select class="controle-formulario" id="tipo-rai">
-                            <option value="">Selecione...</option>
-                            <option value="Furto">Furto</option>
-                            <option value="Roubo">Roubo</option>
-                            <option value="Homicídio">Homicídio</option>
-                            <option value="Tráfico">Tráfico de Entorpecentes</option>
-                            <option value="Porte Ilegal">Porte Ilegal de Arma</option>
-                            <option value="Violência Doméstica">Violência Doméstica</option>
-                            <option value="Acidentes">Acidente de Trânsito</option>
-                            <option value="Pertubação">Perturbação da Ordem</option>
-                            <option value="Outro">Outro</option>
-                        </select>
-                    </div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="desc-rai">Descrição *</label>
-                        <textarea class="controle-formulario" id="desc-rai" rows="4"
-                            placeholder="Descreva a ocorrência com detalhes..."></textarea>
-                    </div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="endereco-rai">Local / Endereço</label>
-                        <input class="controle-formulario" type="text" id="endereco-rai"
-                            placeholder="Logradouro, bairro, município">
-                    </div>
-                    <div class="linha-formulario">
-                        <div class="grupo-formulario metade">
-                            <label class="rotulo-formulario" for="lat-rai">Latitude</label>
-                            <input class="controle-formulario" type="number" id="lat-rai" placeholder="Auto" readonly>
-                        </div>
-                        <div class="grupo-formulario metade">
-                            <label class="rotulo-formulario" for="lng-rai">Longitude</label>
-                            <input class="controle-formulario" type="number" id="lng-rai" placeholder="Auto" readonly>
-                        </div>
-                    </div>
-                    <button class="btn-secundario" id="btn-capturar-gps">
-                        📍 CAPTURAR GPS AGORA
+            <div class="container-input-busca">
+                <input
+                        class="input-busca"
+                        type="text"
+                        id="entrada-busca"
+                        placeholder="Digite placa (ABC1D23) ou CPF..."
+                />
+                <button class="btn-busca" id="btn-executar-busca">🔍 BUSCAR</button>
+            </div>
+            <div class="latencia-busca" id="latencia-busca" style="display: none">
+                <span id="latencia-ms">0ms</span> ·
+                <span id="modo-busca-origem">Cache Local</span>
+            </div>
+            <div id="resultados-busca" class="area-resultados"></div>
+        </div>
+    </div>
+
+    <!-- ─── TELA: HISTÓRICO ─── -->
+    <div class="tela" id="tela-historico">
+        <div class="cabecalho-tela">
+            <h1 class="titulo-tela">HISTÓRICO</h1>
+            <button class="btn-icon" id="btn-atualizar-historico">↻</button>
+        </div>
+        <div id="lista-historico" class="container-historico">
+            <div class="estado-vazio">Nenhuma ocorrência registrada.</div>
+        </div>
+    </div>
+
+    <!-- ─── TELA: CONFIGURAÇÕES ─── -->
+    <div class="tela" id="tela-configuracoes">
+        <div class="cabecalho-tela">
+            <h1 class="titulo-tela">CONFIGURAÇÕES</h1>
+        </div>
+        <div class="container-configuracoes">
+            <div class="secao-configuracoes">
+                <div class="titulo-secao-configuracoes">OPERADOR</div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="cfg-nome-policial"
+                    >Nome do Policial</label
+                    >
+                    <input
+                            class="controle-formulario"
+                            type="text"
+                            id="cfg-nome-policial"
+                            placeholder="Nome completo"
+                    />
+                </div>
+                <div class="grupo-formulario">
+                    <label class="rotulo-formulario" for="cfg-matricula-policial"
+                    >Matrícula / RE</label
+                    >
+                    <input
+                            class="controle-formulario"
+                            type="text"
+                            id="cfg-matricula-policial"
+                            placeholder="Número de registro"
+                    />
+                </div>
+                <button class="btn-primario" id="btn-salvar-configuracoes">
+                    SALVAR CONFIGURAÇÕES
+                </button>
+            </div>
+            <div class="secao-configuracoes">
+                <div class="titulo-secao-configuracoes">
+                    MODO DE OPERAÇÃO (TESTE)
+                </div>
+                <div class="switch-modo-teste">
+                    <button class="botao-teste-modo nuvem-btn" id="teste-nuvem">
+                        ☁ Simular NUVEM
+                    </button>
+                    <button
+                            class="botao-teste-modo fallback-btn"
+                            id="teste-contingencia"
+                    >
+                        📱 Simular CONTINGÊNCIA
+                    </button>
+                    <button class="botao-teste-modo blackout-btn" id="teste-apagao">
+                        ⚡ Simular BLACKOUT
                     </button>
                 </div>
-
-                <div class="secao-formulario">
-                    <div class="titulo-secao-formulario">ENVOLVIDOS</div>
-                    <div id="lista-pessoas"></div>
-                    <button class="btn-secundario btn-adicionar-pessoa" id="btn-add-pessoa">+ Adicionar Pessoa</button>
+            </div>
+            <div class="secao-configuracoes">
+                <div class="titulo-secao-configuracoes">Aparência</div>
+                <div class="switch-modo-teste">
+                    <button class="botao-teste-modo diurno-btn" id="modo-diurno">
+                        ☀️ Modo diurno
+                    </button>
+                    <button class="botao-teste-modo noturno-btn" id="modo-noturno">
+                        🌙 Modo noturno
+                    </button>
+                    <button class="botao-teste-modo auto-btn" id="modo-automatico">
+                        🕒 Automático
+                    </button>
+                    <button
+                            class="botao-teste-modo dispositivo-btn"
+                            id="modo-dispositivo"
+                    >
+                        📱 Dispositivo
+                    </button>
                 </div>
-
-                <div class="secao-formulario">
-                    <div class="titulo-secao-formulario">VEÍCULOS</div>
-                    <div id="lista-veiculos"></div>
-                    <button class="btn-secundario btn-adicionar-veiculo" id="btn-add-veiculo">+ Adicionar
-                        Veículo</button>
-                </div>
-
-                <div class="secao-formulario">
-                    <div class="titulo-secao-formulario">OBSERVAÇÕES FINAIS</div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="obs-rai">Observações Adicionais</label>
-                        <textarea class="controle-formulario" id="obs-rai" rows="3"
-                            placeholder="Informações complementares..."></textarea>
+            </div>
+            <div class="secao-configuracoes">
+                <div class="titulo-secao-configuracoes">CACHE LOCAL</div>
+                <div class="estatisticas-cache" id="painel-estatisticas-cache">
+                    <div class="estatistica-cache">
+                <span class="numero-estatistica-cache" id="ec-ocorrencias"
+                >0</span
+                >
+                        Ocorrências
+                    </div>
+                    <div class="estatistica-cache">
+                        <span class="numero-estatistica-cache" id="ec-veiculos">0</span>
+                        Veículos
+                    </div>
+                    <div class="estatistica-cache">
+                        <span class="numero-estatistica-cache" id="ec-pessoas">0</span>
+                        Pessoas
                     </div>
                 </div>
-
-                <div class="acoes-formulario">
-                    <button class="btn-perigo" id="btn-cancelar-rai">CANCELAR</button>
-                    <button class="btn-primario" id="btn-salvar-rai">✓ SALVAR REGISTRO</button>
-                </div>
+                <button class="btn-secundario" id="btn-recarregar-seed">
+                    ↺ Recarregar Dados Demo
+                </button>
+                <button class="btn-perigo-outline" id="btn-limpar-cache">
+                    ✕ Limpar Tudo
+                </button>
             </div>
-        </div>
-
-        <!-- ─── TELA: BUSCA / CONSULTA ─── -->
-        <div class="tela" id="tela-busca">
-            <div class="cabecalho-tela">
-                <button class="btn-voltar" id="voltar-busca">← VOLTAR</button>
-                <h1 class="titulo-tela">CONSULTA TÁTICA</h1>
-                <span class="badge-tela" id="badge-modo-busca">NUVEM</span>
-            </div>
-            <div class="container-busca">
-                <div class="abas-busca">
-                    <button class="aba-busca ativa" data-tipo="veiculo" id="aba-veiculo">🚗 VEÍCULO</button>
-                    <button class="aba-busca" data-tipo="pessoa" id="aba-pessoa">👤 PESSOA</button>
-                </div>
-                <div class="container-input-busca">
-                    <input class="input-busca" type="text" id="entrada-busca"
-                        placeholder="Digite placa (ABC1D23) ou CPF...">
-                    <button class="btn-busca" id="btn-executar-busca">🔍 BUSCAR</button>
-                </div>
-                <div class="latencia-busca" id="latencia-busca" style="display:none;">
-                    <span id="latencia-ms">0ms</span> · <span id="modo-busca-origem">Cache Local</span>
-                </div>
-                <div id="resultados-busca" class="area-resultados"></div>
-            </div>
-        </div>
-
-        <!-- ─── TELA: HISTÓRICO ─── -->
-        <div class="tela" id="tela-historico">
-            <div class="cabecalho-tela">
-                <h1 class="titulo-tela">HISTÓRICO</h1>
-                <button class="btn-icon" id="btn-atualizar-historico">↻</button>
-            </div>
-            <div id="lista-historico" class="container-historico">
-                <div class="estado-vazio">Nenhuma ocorrência registrada.</div>
-            </div>
-        </div>
-
-        <!-- ─── TELA: CONFIGURAÇÕES ─── -->
-        <div class="tela" id="tela-configuracoes">
-            <div class="cabecalho-tela">
-                <h1 class="titulo-tela">CONFIGURAÇÕES</h1>
-            </div>
-            <div class="container-configuracoes">
-                <div class="secao-configuracoes">
-                    <div class="titulo-secao-configuracoes">OPERADOR</div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="cfg-nome-policial">Nome do Policial</label>
-                        <input class="controle-formulario" type="text" id="cfg-nome-policial"
-                            placeholder="Nome completo">
-                    </div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="cfg-matricula-policial">Matrícula / RE</label>
-                        <input class="controle-formulario" type="text" id="cfg-matricula-policial"
-                            placeholder="Número de registro">
-                    </div>
-                    <button class="btn-primario" id="btn-salvar-configuracoes">SALVAR CONFIGURAÇÕES</button>
-                </div>
-                <div class="secao-configuracoes">
-                    <div class="titulo-secao-configuracoes">MODO DE OPERAÇÃO (TESTE)</div>
-                    <div class="switch-modo-teste">
-                        <button class="botao-teste-modo nuvem-btn" id="teste-nuvem">☁ Simular NUVEM</button>
-                        <button class="botao-teste-modo fallback-btn" id="teste-contingencia">📱 Simular
-                            CONTINGÊNCIA</button>
-                        <button class="botao-teste-modo blackout-btn" id="teste-apagao">⚡ Simular BLACKOUT</button>
-                    </div>
-                </div>
-                <div class="secao-configuracoes">
-                    <div class="titulo-secao-configuracoes">CACHE LOCAL</div>
-                    <div class="estatisticas-cache" id="painel-estatisticas-cache">
-                        <div class="estatistica-cache"><span class="numero-estatistica-cache"
-                                id="ec-ocorrencias">0</span> Ocorrências</div>
-                        <div class="estatistica-cache"><span class="numero-estatistica-cache" id="ec-veiculos">0</span>
-                            Veículos</div>
-                        <div class="estatistica-cache"><span class="numero-estatistica-cache" id="ec-pessoas">0</span>
-                            Pessoas</div>
-                    </div>
-                    <button class="btn-secundario" id="btn-sincronizar-cache">↻ Sincronizar Cache da Nuvem</button>
-                    <button class="btn-perigo-outline" id="btn-limpar-cache">✕ Limpar Tudo</button>
-                </div>
-                <div class="secao-configuracoes">
-                    <div class="titulo-secao-configuracoes">VERSÃO</div>
-                    <p class="texto-versao">IPI v1.0.0 · SSP-GO · Build 2026</p>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- end container-app -->
-
-    <!-- NAVEGAÇÃO INFERIOR -->
-    <nav id="navegacao-inferior">
-        <button class="botao-navegacao ativo" data-tela="inicio" id="nav-inicio">
-            <svg class="navegacao-icon" viewBox="0 0 24 24">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-            </svg>
-            <span>Início</span>
-        </button>
-        <button class="botao-navegacao" data-tela="busca" id="nav-busca">
-            <svg class="navegacao-icon" viewBox="0 0 24 24">
-                <path
-                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-            </svg>
-            <span>Consultar</span>
-        </button>
-        <button class="botao-navegacao navegacao-fab" data-tela="rai" id="nav-rai">
-            <svg class="navegacao-icon" viewBox="0 0 24 24">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>
-            <span>Novo RAI</span>
-        </button>
-        <button class="botao-navegacao" data-tela="historico" id="nav-historico">
-            <svg class="navegacao-icon" viewBox="0 0 24 24">
-                <path
-                    d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
-            </svg>
-            <span>Histórico</span>
-        </button>
-        <button class="botao-navegacao" data-tela="configuracoes" id="nav-configuracoes">
-            <svg class="navegacao-icon" viewBox="0 0 24 24">
-                <path
-                    d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-            </svg>
-            <span>Config</span>
-        </button>
-    </nav>
-
-    <!-- CONTAINER DE AVISO -->
-    <div id="container-aviso"></div>
-
-    <!-- MODAL OVERLAY -->
-    <div id="camada-modal" style="display:none;">
-        <div id="caixa-modal">
-            <div id="titulo-modal" class="modal-titulo"></div>
-            <div id="corpo-modal" class="modal-corpo"></div>
-            <div class="modal-acoes">
-                <button class="btn-secundario" id="cancelar-modal">CANCELAR</button>
-                <button class="btn-perigo" id="confirmar-modal">CONFIRMAR</button>
+            <div class="secao-configuracoes">
+                <div class="titulo-secao-configuracoes">VERSÃO</div>
+                <p class="texto-versao">IPI v1.0.0 · SSP-GO · Build 2026</p>
             </div>
         </div>
     </div>
+</div>
+<!-- end container-app -->
 
-    <!-- SCRIPTS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/configSupabase.js"></script>
-    <script src="./js/db.js"></script>
-    <script src="./js/conectividade.js"></script>
-    <script src="./js/servicoBusca.js"></script>
-    <script src="./js/servicoSincronizacao.js"></script>
-    <script src="./js/app.js"></script>
+<!-- NAVEGAÇÃO INFERIOR -->
+<nav id="navegacao-inferior">
+    <button class="botao-navegacao ativo" data-tela="inicio" id="nav-inicio">
+        <svg class="navegacao-icon" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+        <span>Início</span>
+    </button>
+    <button class="botao-navegacao" data-tela="busca" id="nav-busca">
+        <svg class="navegacao-icon" viewBox="0 0 24 24">
+            <path
+                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+            />
+        </svg>
+        <span>Consultar</span>
+    </button>
+    <button
+            class="botao-navegacao navegacao-fab"
+            data-tela="rai"
+            id="nav-rai"
+    >
+        <svg class="navegacao-icon" viewBox="0 0 24 24">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+        <span>Novo RAI</span>
+    </button>
+    <button class="botao-navegacao" data-tela="historico" id="nav-historico">
+        <svg class="navegacao-icon" viewBox="0 0 24 24">
+            <path
+                    d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"
+            />
+        </svg>
+        <span>Histórico</span>
+    </button>
+    <button
+            class="botao-navegacao"
+            data-tela="configuracoes"
+            id="nav-configuracoes"
+    >
+        <svg class="navegacao-icon" viewBox="0 0 24 24">
+            <path
+                    d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+            />
+        </svg>
+        <span>Config</span>
+    </button>
+</nav>
+
+<!-- CONTAINER DE AVISO -->
+<div id="container-aviso"></div>
+
+<!-- MODAL OVERLAY -->
+<div id="camada-modal" style="display: none">
+    <div id="caixa-modal">
+        <div id="titulo-modal" class="modal-titulo"></div>
+        <div id="corpo-modal" class="modal-corpo"></div>
+        <div class="modal-acoes">
+            <button class="btn-secundario" id="cancelar-modal">CANCELAR</button>
+            <button class="btn-perigo" id="confirmar-modal">CONFIRMAR</button>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="./js/db.js"></script>
+<script src="./js/conectividade.js"></script>
+<script src="./js/servicoBusca.js"></script>
+<script src="./js/servicoSincronizacao.js"></script>
+<script src="./js/app.js"></script>
+<script src="./js/aparencia.js"></script>
 </body>
-
 </html>
