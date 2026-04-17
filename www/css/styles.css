@@ -136,6 +136,15 @@ body {
     animation: blink 0.5s infinite;
 }
 
+.modo-hint {
+    margin: 6px;
+    font-size: 0.65rem;
+    color: var(--gray-muted);
+    font-family: var(--font-mono);
+    opacity: 0.7;
+    text-align: center;
+}
+
 @keyframes pulse {
     0%,
     100% {

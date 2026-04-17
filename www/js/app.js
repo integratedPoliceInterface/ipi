@@ -36,7 +36,7 @@ async function iniciarApp() {
     iniciarRelogio();
 
     // 8. Captura GPS automaticamente ao carregar
-    capturarGPS();
+    //capturarGPS();
 
     console.log('[App] IPI iniciado.');
 }
@@ -567,22 +567,53 @@ function vincularEventosGlobais() {
    GPS
    ════════════════════════════════════════════════════════════ */
 function capturarGPS() {
-    if (!navigator.geolocation) return;
+    // Verifica suporte
+    if (!navigator.geolocation) {
+        exibirAviso('❌ Seu dispositivo não suporta GPS.', 'erro');
+        return;
+    }
+
     navigator.geolocation.getCurrentPosition(
         (pos) => {
             const lat = pos.coords.latitude.toFixed(6);
             const lng = pos.coords.longitude.toFixed(6);
+
             const latEl = document.getElementById('lat-rai');
             const lngEl = document.getElementById('lng-rai');
+
             if (latEl) latEl.value = lat;
             if (lngEl) lngEl.value = lng;
+
+            // Atualiza indicador visual do GPS
             const rotuloGPS = document.getElementById('rotulo-gps');
             if (rotuloGPS) rotuloGPS.style.color = 'var(--green-neon)';
+
+            exibirAviso('📍 Localização capturada com sucesso.', 'sucesso');
         },
+
         (err) => {
             console.warn('[GPS] Erro:', err.message);
+
+            // Atualiza indicador visual para erro
+            const rotuloGPS = document.getElementById('rotulo-gps');
+            if (rotuloGPS) rotuloGPS.style.color = 'var(--red-alert)';
+
+            if (err.code === 1) {
+                exibirAviso('⚠ Localização desativada. Ative o GPS no dispositivo.', 'erro');
+            } else if (err.code === 2) {
+                exibirAviso('❌ Não foi possível obter a localização.', 'erro');
+            } else if (err.code === 3) {
+                exibirAviso('⏳ Tempo esgotado ao tentar obter GPS.', 'aviso');
+            } else {
+                exibirAviso('❌ Erro desconhecido ao capturar GPS.', 'erro');
+            }
         },
-        { enableHighAccuracy: true, timeout: 8000 }
+
+        {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        }
     );
 }
 
