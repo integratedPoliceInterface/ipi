@@ -4,7 +4,7 @@
  */
 
 const DB_NOME = 'ipi_db';
-const DB_VERSAO = 1;
+const DB_VERSAO = 2;
 
 const ARMAZENS = {
     OCORRENCIAS: 'ocorrencias',
