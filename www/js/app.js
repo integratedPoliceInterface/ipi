@@ -451,7 +451,32 @@ function renderizarResultadoPessoa(p) {
    Tela de Histórico
    ════════════════════════════════════════════════════════════ */
 function vincularTelaHistorico() {
-    document.getElementById('btn-atualizar-historico')?.addEventListener('click', renderizarHistorico);
+    document
+        .getElementById('btn-atualizar-historico')
+        ?.addEventListener('click', atualizarHistoricoComFeedback);
+}
+
+async function atualizarHistoricoComFeedback() {
+    const btn = document.getElementById('btn-atualizar-historico');
+    if (!btn) return;
+
+    try {
+        btn.disabled = true;
+
+        // aviso de início
+        exibirAviso('⏳ Atualizando histórico...', 'info');
+
+        await renderizarHistorico();
+
+        exibirAviso('✓ Histórico atualizado com sucesso.', 'sucesso');
+
+    } catch (erro) {
+        console.error(erro);
+        exibirAviso('❌ Erro ao atualizar histórico.', 'erro');
+
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 async function renderizarHistorico() {
