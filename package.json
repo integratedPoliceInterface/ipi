@@ -1,13 +1,16 @@
 {
   "name": "ipi-mobile",
   "version": "1.0.0",
+  "description": "Interface Policial Integrada - Mobile App (SSP-GO)",
   "private": true,
   "scripts": {
     "dev": "serve .",
     "build": "echo build concluído",
     "sync": "npx cap sync",
     "android": "npx cap open android",
-    "ios": "npx cap open ios"
+    "ios": "npx cap open ios",
+    "add-android": "npx cap add android",
+    "add-ios": "npx cap add ios"
   },
   "dependencies": {
     "@capacitor/core": "^5.7.8",
