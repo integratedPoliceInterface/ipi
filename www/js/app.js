@@ -588,10 +588,6 @@ function vincularEventosGlobais() {
     document.getElementById('camada-modal')?.addEventListener('click', (e) => {
         if (e.target === document.getElementById('camada-modal')) fecharModal();
     });
-
-    document.getElementById('btn-config-fab')?.addEventListener('click', () => {
-        navegarPara('configuracoes');
-    });
 }
 
 /* ════════════════════════════════════════════════════════════

@@ -4,6 +4,7 @@
  */
 
 const DB_NOME = 'ipi_db';
+const DB_VERSAO = 3;
 
 const ARMAZENS = {
     OCORRENCIAS: 'ocorrencias',
@@ -12,50 +13,60 @@ const ARMAZENS = {
     CONFIGURACOES: 'configuracoes'
 };
 
-const _SCHEMA = {
-    ocorrencias:    { keyPath: 'id', indexes: ['sincronizado', 'tipo'] },
-    veiculos:       { keyPath: 'placa', indexes: ['status'] },
-    pessoas:        { keyPath: 'cpf', indexes: ['status'] },
-    configuracoes:  { keyPath: 'chave', indexes: [] }
-};
-
 class IPIDatabase {
     constructor() {
         this.db = null;
     }
 
     abrir() {
-        return this._abrirVersao(0);
-    }
-
-    _abrirVersao(versao) {
         return new Promise((resolve, reject) => {
-            const req = versao === 0 ? indexedDB.open(DB_NOME) : indexedDB.open(DB_NOME, versao);
+            const req = indexedDB.open(DB_NOME, DB_VERSAO);
 
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                for (const [nome, cfg] of Object.entries(_SCHEMA)) {
-                    if (!db.objectStoreNames.contains(nome)) {
-                        const st = db.createObjectStore(nome, { keyPath: cfg.keyPath });
-                        for (const idx of cfg.indexes) {
-                            st.createIndex(idx, idx, { unique: false });
-                        }
+
+                if (e.oldVersion < 2) {
+                    if (!db.objectStoreNames.contains(ARMAZENS.OCORRENCIAS)) {
+                        const store = db.createObjectStore(ARMAZENS.OCORRENCIAS, { keyPath: 'id' });
+                        store.createIndex('sincronizado', 'sincronizado', { unique: false });
+                        store.createIndex('tipo', 'tipo', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.VEICULOS)) {
+                        const store = db.createObjectStore(ARMAZENS.VEICULOS, { keyPath: 'placa' });
+                        store.createIndex('situacao', 'situacao', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.PESSOAS)) {
+                        const store = db.createObjectStore(ARMAZENS.PESSOAS, { keyPath: 'cpf' });
+                        store.createIndex('situacao', 'situacao', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.CONFIGURACOES)) {
+                        db.createObjectStore(ARMAZENS.CONFIGURACOES, { keyPath: 'chave' });
+                    }
+                }
+
+                if (e.oldVersion < 3) {
+                    const trans = e.target.transaction;
+
+                    const veiculosStore = trans.objectStore(ARMAZENS.VEICULOS);
+                    if (veiculosStore.indexNames.contains('status')) {
+                        veiculosStore.deleteIndex('status');
+                    }
+                    if (!veiculosStore.indexNames.contains('situacao')) {
+                        veiculosStore.createIndex('situacao', 'situacao', { unique: false });
+                    }
+
+                    const pessoasStore = trans.objectStore(ARMAZENS.PESSOAS);
+                    if (pessoasStore.indexNames.contains('status')) {
+                        pessoasStore.deleteIndex('status');
+                    }
+                    if (!pessoasStore.indexNames.contains('situacao')) {
+                        pessoasStore.createIndex('situacao', 'situacao', { unique: false });
                     }
                 }
             };
 
             req.onsuccess = (e) => {
-                const db = e.target.result;
-                if (versao === 0) {
-                    const precisaUpgrade = Object.keys(_SCHEMA).some(n => !db.objectStoreNames.contains(n));
-                    if (precisaUpgrade) {
-                        const novaVersao = db.version + 1;
-                        db.close();
-                        resolve(this._abrirVersao(novaVersao));
-                        return;
-                    }
-                }
-                this.db = db;
+                this.db = e.target.result;
                 resolve(this.db);
             };
             req.onerror = (e) => reject(e.target.error);
