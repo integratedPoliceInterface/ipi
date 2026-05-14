@@ -1383,3 +1383,186 @@ textarea.controle-formulario {
     gap: 24px;
     flex-wrap: wrap;
 }
+
+img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+
+/* ─── TELA MAPA ─── */
+#tela-mapa {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+}
+
+/* ─── MAPA ─── */
+#mapa-full {
+    flex: 1;
+    width: 100%;
+}
+
+/* ─── CONTAINER DA BUSCA ─── */
+#busca-mapa-container {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+/* ─── INPUT ─── */
+#input-busca-mapa {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+
+    z-index: 1000;
+
+    padding: 10px 40px 10px 12px; /* espaço pra lupa */
+    border: none;
+    outline: none;
+    background: var(--bg-input);
+    color: var(--white);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* ─── LUPA DENTRO DO INPUT ─── */
+#btn-buscar-mapa {
+    position: absolute;
+    top: 75px;
+    left: calc(50% + 30% - 35px); /* acompanha os 60% */
+    z-index: 1100;
+
+    background: transparent;
+    border: none;
+    color: #00ff88;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* ─── LEAFLET ─── */
+.leaflet-container {
+    background: #000;
+}
+
+/* ─── TEMA DIURNO ─── */
+.tema-diurno #input-busca-mapa {
+    background: #ffffff;
+    color: #000;
+}
+
+.leaflet-popup-content {
+    font-weight: bold;
+}
+
+#btn-limpar-mapa {
+    position: absolute;
+    bottom: 45px;
+    right: 16px;
+    z-index: 1100;
+
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--green-neon);
+    color: var(--green-dim);
+
+    padding: 12px 14px;
+    border-radius: 50%;
+    cursor: pointer;
+
+    font-size: 18px;
+
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
+
+/* Hover */
+#btn-limpar-mapa:hover {
+    background: var(--green-dim);
+    color: #fff;
+}
+
+/* ─── BOTÃO CONFIGURAÇÕES (FAB) ─── */
+
+:root {
+    --config-icon: var(--green-neon);
+}
+
+/* modo diurno — AJUSTE PRINCIPAL */
+.tema-diurno #btn-config-fab {
+    color: #2f6f3a;              /* verde mais fechado */
+    border-color: #2f6f3a;       /* sem neon */
+    background: #f0f2f0;         /* fundo mais neutro */
+}
+
+/* hover no diurno */
+.tema-diurno #btn-config-fab:hover {
+    background: #2f6f3a;
+    color: #ffffff;
+    box-shadow: 0 0 6px rgba(47, 111, 58, 0.25);
+}
+
+/* ativo no diurno */
+.tema-diurno #btn-config-fab.ativo {
+    background: #2f6f3a;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(47, 111, 58, 0.3);
+}
+
+/* botão base */
+#btn-config-fab {
+    width: 36px;
+    height: 36px;
+
+    border-radius: var(--radius-sm);
+
+    background: var(--bg-secondary);
+    color: var(--config-icon);
+
+    border: 1px solid var(--config-icon);
+
+    font-size: 18px;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 10px;
+
+    transition: all 0.2s ease;
+
+    user-select: none;
+}
+
+/* hover */
+#btn-config-fab:hover {
+    background: var(--config-icon);
+    color: var(--bg-primary);
+    box-shadow: 0 0 10px var(--config-icon);
+    transform: scale(1.05);
+}
+
+/* ativo */
+#btn-config-fab.ativo {
+    background: var(--config-icon);
+    color: var(--bg-primary);
+    box-shadow: 0 0 12px var(--config-icon);
+}
+
+/* foco acessível */
+#btn-config-fab:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(63, 143, 79, 0.35);
+}
+
+/* garante centralização perfeita do emoji */
+#btn-config-fab {
+    line-height: 1;
+}
