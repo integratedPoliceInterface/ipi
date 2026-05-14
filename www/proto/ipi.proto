@@ -2,41 +2,61 @@ syntax = "proto3";
 
 package ipi;
 
-// Registro de Atendimento Integrado (RAI)
+// ============================================================
+// Registro de Atendimento Integrado (RAI) / Ocorrência
+// ============================================================
 message RAI {
     string id = 1;
-    string timestamp = 2;
-    string operator_id = 3;
-    string type = 4; // Tipo de ocorrência
-    string description = 5;
-    Location location = 6;
-    repeated Person persons = 7;
-    repeated Vehicle vehicles = 8;
-    bool synced = 9;
+    string data_hora = 2;
+    string matricula_operador = 3;
+    string tipo = 4;
+    string descricao = 5;
+    Localizacao localizacao = 6;
+    repeated Pessoa pessoas = 7;
+    repeated Veiculo veiculos = 8;
+    bool sincronizado = 9;
 }
 
-message Location {
+// ============================================================
+// Localização
+// ============================================================
+message Localizacao {
     double latitude = 1;
     double longitude = 2;
-    string address_hint = 3;
+    string referencia_endereco = 3;
 }
 
-message Person {
+// ============================================================
+// Pessoa
+// ============================================================
+message Pessoa {
     string cpf = 1;
-    string name = 2;
-    string role = 3; // Suspeito, Vítima, Testemunha
-    string observation = 4;
+    string nome = 2;
+    string data_nascimento = 3;
+    string tipo_mandado = 4;
+    string observacao = 5;
+    string situacao = 6; // REGULAR, MANDADO_PRISAO, FICHA_CRIMINAL
+    string envolvimento = 7; // Suspeito, Vítima, Testemunha, Autor
 }
 
-message Vehicle {
-    string plate = 1;
-    string model = 2;
-    string color = 3;
-    string status = 4; // Roubado, Regular
+// ============================================================
+// Veículo
+// ============================================================
+message Veiculo {
+    string placa = 1;
+    string modelo = 2;
+    string cor = 3;
+    string ano_fabricacao = 4;
+    string proprietario = 5;
+    string numero_boletim = 6;
+    string situacao = 7; // REGULAR, ROUBADO, FURTADO, QUEIXADO
 }
 
-message SearchQuery {
+// ============================================================
+// Consulta
+// ============================================================
+message Consulta {
     string id = 1;
-    string query_type = 2; // PERSON, VEHICLE
-    string params = 3; // Plate or CPF
+    string tipo_consulta = 2; // PESSOA, VEICULO
+    string parametros = 3; // Placa ou CPF
 }

@@ -72,28 +72,64 @@ class ServicoSincronizacao extends EventTarget {
         }
 
         try {
-            // Mapeando a ocorrência local para o banco Supabase
-            const { error: erroOcorrencia } = await window.supabaseClient
+            // 1. Inserir a ocorrência principal
+            // Nota: O banco espera um UUID. Se o app enviar algo diferente,
+            // podemos deixar o Supabase gerar e capturar o ID.
+            const { data: novaOcorrencia, error: erroOcorrencia } = await window.supabaseClient
                 .from('ocorrencias')
                 .insert([{
-                    id: ocorrencia.id,
-                    operador_id: ocorrencia.operador_id || 'OPERADOR_DESCONHECIDO',
+                    matricula_operador: ocorrencia.matricula_operador || 'OPERADOR_DESCONHECIDO',
                     tipo: ocorrencia.tipo,
                     descricao: ocorrencia.descricao,
-                    latitude: ocorrencia.localizacao?.latitude || null,
-                    longitude: ocorrencia.localizacao?.longitude || null,
-                    endereco_hint: ocorrencia.localizacao?.endereco_hint || null,
-                    // Se o app gera a data de criação:
-                    timestamp: ocorrencia.timestamp || new Date().toISOString()
-                }]);
+                    latitude: ocorrencia.latitude || null,
+                    longitude: ocorrencia.longitude || null,
+                    referencia_endereco: ocorrencia.referencia_endereco || null,
+                    data_hora: ocorrencia.data_hora || new Date().toISOString()
+                }])
+                .select()
+                .single();
 
             if (erroOcorrencia) {
                 console.error('[SyncSvc] Erro ao inserir ocorrência no Supabase:', erroOcorrencia);
                 return false;
             }
 
-            // Opcional: Aqui poderíamos inserir também em ocorrencia_pessoas e ocorrencia_veiculos
-            // iterando em ocorrencia.pessoas e ocorrencia.veiculos
+            const realId = novaOcorrencia.id;
+
+            // 2. Inserir pessoas vinculadas (envolvidos)
+            if (ocorrencia.pessoas && ocorrencia.pessoas.length > 0) {
+                const dadosPessoas = ocorrencia.pessoas
+                    .filter(p => p.cpf)
+                    .map(p => ({
+                        ocorrencia_id: realId,
+                        cpf_pessoa: p.cpf.replace(/\D/g, ''),
+                        envolvimento: p.envolvimento
+                    }));
+
+                if (dadosPessoas.length > 0) {
+                    const { error: errP } = await window.supabaseClient
+                        .from('envolvidos')
+                        .insert(dadosPessoas);
+                    if (errP) console.warn('[SyncSvc] Erro ao vincular pessoas:', errP);
+                }
+            }
+
+            // 3. Inserir veículos vinculados (veiculos_envolvidos)
+            if (ocorrencia.veiculos && ocorrencia.veiculos.length > 0) {
+                const dadosVeiculos = ocorrencia.veiculos
+                    .filter(v => v.placa)
+                    .map(v => ({
+                        ocorrencia_id: realId,
+                        placa_veiculo: v.placa.toUpperCase().replace(/[^A-Z0-9]/g, '')
+                    }));
+
+                if (dadosVeiculos.length > 0) {
+                    const { error: errV } = await window.supabaseClient
+                        .from('veiculos_envolvidos')
+                        .insert(dadosVeiculos);
+                    if (errV) console.warn('[SyncSvc] Erro ao vincular veículos:', errV);
+                }
+            }
 
             return true;
         } catch (e) {

@@ -130,7 +130,7 @@ class ServicoBusca {
         // Codifica e "envia" SMS - em produção o plugin Capacitor SMS cuidaria disso
         const sms = window.connMgr.codificarSMS('CONSULTA_VEIC', { placa });
         console.log('[ServicoBusca] Consulta SMS codificada:', sms);
-        return { placa, modelo: 'AGUARD. RETORNO SMS', status: 'PENDENTE', origem: 'CONSULTA_SMS' };
+        return { placa, modelo: 'AGUARD. RETORNO SMS', situacao: 'PENDENTE', origem: 'CONSULTA_SMS' };
     }
 }
 
