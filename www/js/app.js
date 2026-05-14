@@ -301,12 +301,14 @@ function coletarVeiculos() {
 async function salvarRAI() {
     const tipo = document.getElementById('tipo-rai')?.value;
     const descricao = document.getElementById('desc-rai')?.value;
+    const matricula = await window.ipiDB.obterConfiguracao('matricula_policial') || 'DESCONHECIDO';
 
     if (!tipo) { exibirAviso('Selecione o tipo de ocorrência.', 'erro'); return; }
     if (!descricao || descricao.trim().length < 10) { exibirAviso('Descreva a ocorrência (mínimo 10 caracteres).', 'erro'); return; }
 
     const ocorrencia = {
         id: `RAI-${Date.now()}`,
+        operador_id: matricula,
         dataHora: new Date().toISOString(),
         tipo,
         descricao,
@@ -501,8 +503,8 @@ async function renderizarHistorico() {
             <div class="descricao-historico">${oc.descricao}</div>
             <div class="badges-historico">
                 ${oc.sincronizado
-            ? '<span class="badge-sincronizado-ok">✓ SINCRONIZADO</span>'
-            : '<span class="badge-sincronizado-pendente">⏱ PENDENTE</span>'}
+        ? '<span class="badge-sincronizado-ok">✓ SINCRONIZADO</span>'
+        : '<span class="badge-sincronizado-pendente">⏱ PENDENTE</span>'}
                 <span class="badge-sincronizado-ok" style="color:var(--gray-muted)">${oc.modo || 'NUVEM'}</span>
             </div>
         </div>
