@@ -516,7 +516,7 @@ async function renderizarHistorico() {
    ════════════════════════════════════════════════════════════ */
 function vincularTelaConfiguracoes() {
     document.getElementById('btn-salvar-configuracoes')?.addEventListener('click', salvarConfiguracoesPolicial);
-    document.getElementById('btn-sincronizar-cache')?.addEventListener('click', async () => {
+    document.getElementById('btn-recarregar-seed')?.addEventListener('click', async () => {
         try {
             exibirAviso('Sincronizando cache com a nuvem...', 'info');
             const res = await window.ipiDB.atualizarCacheNuvem();
