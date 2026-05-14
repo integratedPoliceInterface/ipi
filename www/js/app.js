@@ -308,11 +308,11 @@ async function salvarRAI() {
 
     const ocorrencia = {
         id: `RAI-${Date.now()}`,
-        operador_id: matricula,
-        dataHora: new Date().toISOString(),
+        matricula_operador: matricula,
+        data_hora: new Date().toISOString(),
         tipo,
         descricao,
-        endereco: document.getElementById('endereco-rai')?.value || '',
+        referencia_endereco: document.getElementById('endereco-rai')?.value || '',
         latitude: parseFloat(document.getElementById('lat-rai')?.value) || null,
         longitude: parseFloat(document.getElementById('lng-rai')?.value) || null,
         pessoas: coletarPessoas(),
@@ -416,35 +416,35 @@ function atualizarLatencia(el, ms, modo) {
 }
 
 function renderizarResultadoVeiculo(v) {
-    const ehAlerta = v.status === 'ROUBADO' || v.status === 'FURTADO' || v.status === 'QUEIXADO';
-    const classeBadge = v.status === 'REGULAR' ? 'status-ok' : 'status-roubado';
+    const ehAlerta = v.situacao === 'ROUBADO' || v.situacao === 'FURTADO' || v.situacao === 'QUEIXADO';
+    const classeBadge = v.situacao === 'REGULAR' ? 'status-ok' : 'status-roubado';
     return `
         <div class="card-resultado ${ehAlerta ? 'resultado-perigoso' : ''}">
             <div class="placa-resultado">${v.placa || '—'}</div>
             <div class="campo-resultado"><span class="chave-resultado">MODELO</span><span class="valor-resultado">${v.modelo || '—'}</span></div>
             <div class="campo-resultado"><span class="chave-resultado">COR</span><span class="valor-resultado">${v.cor || '—'}</span></div>
-            ${v.ano ? `<div class="campo-resultado"><span class="chave-resultado">ANO</span><span class="valor-resultado">${v.ano}</span></div>` : ''}
+            ${v.ano_fabricacao ? `<div class="campo-resultado"><span class="chave-resultado">ANO</span><span class="valor-resultado">${v.ano_fabricacao}</span></div>` : ''}
             ${v.proprietario ? `<div class="campo-resultado"><span class="chave-resultado">PROPRIETÁRIO</span><span class="valor-resultado">${v.proprietario}</span></div>` : ''}
-            ${v.boletim ? `<div class="campo-resultado"><span class="chave-resultado">BOLETIM</span><span class="valor-resultado">${v.boletim}</span></div>` : ''}
-            <span class="badge-status ${classeBadge}">● ${v.status}</span>
+            ${v.numero_boletim ? `<div class="campo-resultado"><span class="chave-resultado">BOLETIM</span><span class="valor-resultado">${v.numero_boletim}</span></div>` : ''}
+            <span class="badge-status ${classeBadge}">● ${v.situacao}</span>
         </div>
     `;
 }
 
 function renderizarResultadoPessoa(p) {
-    const ehAlerta = p.status !== 'REGULAR';
+    const ehAlerta = p.situacao !== 'REGULAR';
     let classeBadge = 'status-ok';
-    if (p.status === 'MANDADO_PRISAO') classeBadge = 'status-roubado';
-    else if (p.status === 'FICHA_CRIMINAL') classeBadge = 'status-mandado';
+    if (p.situacao === 'MANDADO_PRISAO') classeBadge = 'status-roubado';
+    else if (p.situacao === 'FICHA_CRIMINAL') classeBadge = 'status-mandado';
 
     return `
         <div class="card-resultado ${ehAlerta ? 'resultado-perigoso' : ''}">
             <div class="placa-resultado" style="font-size:1.1rem; letter-spacing:1px;">${p.nome || '—'}</div>
             <div class="campo-resultado"><span class="chave-resultado">CPF</span><span class="valor-resultado">${p.cpf || '—'}</span></div>
-            ${p.dataNascimento ? `<div class="campo-resultado"><span class="chave-resultado">NASC.</span><span class="valor-resultado">${formatarData(p.dataNascimento)}</span></div>` : ''}
-            ${p.tipoMandado ? `<div class="campo-resultado"><span class="chave-resultado">MANDADO</span><span class="valor-resultado">${p.tipoMandado}</span></div>` : ''}
+            ${p.data_nascimento ? `<div class="campo-resultado"><span class="chave-resultado">NASC.</span><span class="valor-resultado">${formatarData(p.data_nascimento)}</span></div>` : ''}
+            ${p.tipo_mandado ? `<div class="campo-resultado"><span class="chave-resultado">MANDADO</span><span class="valor-resultado">${p.tipo_mandado}</span></div>` : ''}
             ${p.observacao ? `<div class="campo-resultado"><span class="chave-resultado">OBS</span><span class="valor-resultado" style="font-size:0.8rem;">${p.observacao}</span></div>` : ''}
-            <span class="badge-status ${classeBadge}">● ${p.status.replace('_', ' ')}</span>
+            <span class="badge-status ${classeBadge}">● ${p.situacao.replace('_', ' ')}</span>
         </div>
     `;
 }
@@ -492,13 +492,13 @@ async function renderizarHistorico() {
     }
 
     // Ordenar mais recente primeiro
-    ocorrencias.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+    ocorrencias.sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
 
     container.innerHTML = ocorrencias.map(oc => `
         <div class="item-historico ${oc.sincronizado ? 'sincronizado' : 'pendente'}">
             <div class="cabecalho-item-historico">
                 <span class="tipo-historico">${oc.tipo}</span>
-                <span class="data-historico">${formatarDataHora(oc.dataHora)}</span>
+                <span class="data-historico">${formatarDataHora(oc.data_hora)}</span>
             </div>
             <div class="descricao-historico">${oc.descricao}</div>
             <div class="badges-historico">

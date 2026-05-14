@@ -4,7 +4,7 @@
  */
 
 const DB_NOME = 'ipi_db';
-const DB_VERSAO = 2;
+const DB_VERSAO = 3;
 
 const ARMAZENS = {
     OCORRENCIAS: 'ocorrencias',
@@ -24,25 +24,44 @@ class IPIDatabase {
 
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                // Store de Ocorrências
-                if (!db.objectStoreNames.contains(ARMAZENS.OCORRENCIAS)) {
-                    const store = db.createObjectStore(ARMAZENS.OCORRENCIAS, { keyPath: 'id' });
-                    store.createIndex('sincronizado', 'sincronizado', { unique: false });
-                    store.createIndex('tipo', 'tipo', { unique: false });
+
+                if (e.oldVersion < 2) {
+                    if (!db.objectStoreNames.contains(ARMAZENS.OCORRENCIAS)) {
+                        const store = db.createObjectStore(ARMAZENS.OCORRENCIAS, { keyPath: 'id' });
+                        store.createIndex('sincronizado', 'sincronizado', { unique: false });
+                        store.createIndex('tipo', 'tipo', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.VEICULOS)) {
+                        const store = db.createObjectStore(ARMAZENS.VEICULOS, { keyPath: 'placa' });
+                        store.createIndex('situacao', 'situacao', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.PESSOAS)) {
+                        const store = db.createObjectStore(ARMAZENS.PESSOAS, { keyPath: 'cpf' });
+                        store.createIndex('situacao', 'situacao', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains(ARMAZENS.CONFIGURACOES)) {
+                        db.createObjectStore(ARMAZENS.CONFIGURACOES, { keyPath: 'chave' });
+                    }
                 }
-                // Cache de Veículos
-                if (!db.objectStoreNames.contains(ARMAZENS.VEICULOS)) {
-                    const store = db.createObjectStore(ARMAZENS.VEICULOS, { keyPath: 'placa' });
-                    store.createIndex('status', 'status', { unique: false });
-                }
-                // Cache de Pessoas
-                if (!db.objectStoreNames.contains(ARMAZENS.PESSOAS)) {
-                    const store = db.createObjectStore(ARMAZENS.PESSOAS, { keyPath: 'cpf' });
-                    store.createIndex('status', 'status', { unique: false });
-                }
-                // Store de Configurações KV
-                if (!db.objectStoreNames.contains(ARMAZENS.CONFIGURACOES)) {
-                    db.createObjectStore(ARMAZENS.CONFIGURACOES, { keyPath: 'chave' });
+
+                if (e.oldVersion < 3) {
+                    const trans = e.target.transaction;
+
+                    const veiculosStore = trans.objectStore(ARMAZENS.VEICULOS);
+                    if (veiculosStore.indexNames.contains('status')) {
+                        veiculosStore.deleteIndex('status');
+                    }
+                    if (!veiculosStore.indexNames.contains('situacao')) {
+                        veiculosStore.createIndex('situacao', 'situacao', { unique: false });
+                    }
+
+                    const pessoasStore = trans.objectStore(ARMAZENS.PESSOAS);
+                    if (pessoasStore.indexNames.contains('status')) {
+                        pessoasStore.deleteIndex('status');
+                    }
+                    if (!pessoasStore.indexNames.contains('situacao')) {
+                        pessoasStore.createIndex('situacao', 'situacao', { unique: false });
+                    }
                 }
             };
 
