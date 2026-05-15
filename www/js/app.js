@@ -7,43 +7,75 @@
    INICIALIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 async function iniciarApp() {
-    // 1. Abrir banco de dados
     await window.ipiDB.abrir();
-
-    // 2. Inicia monitoramento de conectividade
     await window.connMgr.iniciar();
-
-    // 3. Inicia serviço de sincronização
     window.servicoSincronizacao.iniciar(window.connMgr);
 
-    // 4. Vincula UI
     vincularConectividade();
     vincularNavegacao();
+    vincularLogin();
+    vincularEventosGlobais();
+
+    const operador = await window.servicoAuth.verificarSessao();
+    if (operador) {
+        await posLogin(operador);
+    }
+
+    iniciarRelogio();
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(e => console.warn('[SW]', e));
+    }
+    console.log('[App] IPI iniciado.');
+}
+
+async function posLogin(operador) {
     vincularTelaInicial();
     vincularTelaRAI();
     vincularTelaBusca();
     vincularTelaHistorico();
     vincularTelaConfiguracoes();
-    vincularEventosGlobais();
 
-    // 5. Carrega configurações do oficial
-    await carregarConfiguracoesPolicial();
-
-    // 6. Estatísticas iniciais
     await atualizarEstatisticas();
+    navegarPara('inicio');
+    exibirAviso(`Bem-vindo, ${operador.nome}!`, 'sucesso');
+}
 
-    // 7. Inicia relógio
-    iniciarRelogio();
+function vincularLogin() {
+    document.getElementById('btn-login')?.addEventListener('click', executarLogin);
+    document.getElementById('login-senha')?.addEventListener('keyup', e => {
+        if (e.key === 'Enter') executarLogin();
+    });
+    document.getElementById('login-matricula')?.addEventListener('keyup', e => {
+        if (e.key === 'Enter') document.getElementById('login-senha')?.focus();
+    });
 
-    // 8. Registra Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(e => console.warn('[SW]', e));
+    document.getElementById('btn-logout')?.addEventListener('click', async () => {
+        await window.servicoAuth.logout();
+        document.getElementById('login-matricula').value = '';
+        document.getElementById('login-senha').value = '';
+        document.getElementById('login-erro').textContent = '';
+        exibirAviso('Sessão encerrada.', 'info');
+        navegarPara('login');
+    });
+}
+
+async function executarLogin() {
+    const matricula = document.getElementById('login-matricula')?.value?.trim();
+    const senha = document.getElementById('login-senha')?.value;
+    const erroEl = document.getElementById('login-erro');
+
+    if (!matricula || !senha) {
+        erroEl.textContent = 'Preencha matrícula e senha.';
+        return;
     }
+    erroEl.textContent = '';
 
-    // 9. Captura GPS automaticamente ao carregar
-    //capturarGPS();
-
-    console.log('[App] IPI iniciado.');
+    const operador = await window.servicoAuth.login(matricula, senha);
+    if (operador) {
+        await posLogin(operador);
+    } else {
+        erroEl.textContent = 'Matrícula ou senha inválidos.';
+    }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -306,7 +338,9 @@ function coletarVeiculos() {
 async function salvarRAI() {
     const tipo = document.getElementById('tipo-rai')?.value;
     const descricao = document.getElementById('desc-rai')?.value;
-    const matricula = await window.ipiDB.obterConfiguracao('matricula_policial') || 'DESCONHECIDO';
+    const operador = window.servicoAuth.obterOperador();
+    const matricula = operador ? operador.matricula : 'DESCONHECIDO';
+    const municipio = await window.ipiDB.obterMissao();
 
     if (!tipo) { exibirAviso('Selecione o tipo de ocorrência.', 'erro'); return; }
     if (!descricao || descricao.trim().length < 10) { exibirAviso('Descreva a ocorrência (mínimo 10 caracteres).', 'erro'); return; }
@@ -324,7 +358,8 @@ async function salvarRAI() {
         veiculos: coletarVeiculos(),
         observacoes: document.getElementById('obs-rai')?.value || '',
         sincronizado: window.connMgr.estaEmNuvem(),
-        modo: window.connMgr.obterModo()
+        modo: window.connMgr.obterModo(),
+        municipio: municipio || null
     };
 
     await window.ipiDB.salvarOcorrencia(ocorrencia);
@@ -520,13 +555,13 @@ async function renderizarHistorico() {
    Tela de Configurações
    ════════════════════════════════════════════════════════════ */
 function vincularTelaConfiguracoes() {
-    document.getElementById('btn-salvar-configuracoes')?.addEventListener('click', salvarConfiguracoesPolicial);
     vincularMapaOffline();
 
     document.getElementById('btn-sincronizar-cache')?.addEventListener('click', async () => {
         try {
             exibirAviso('Sincronizando cache com a nuvem...', 'info');
-            const res = await window.ipiDB.atualizarCacheNuvem();
+            const municipio = await window.ipiDB.obterMissao();
+            const res = await window.ipiDB.atualizarCacheNuvem(municipio || undefined);
             await atualizarEstatisticas();
             await atualizarEstatisticasCache();
             exibirAviso(`Cache atualizado! (${res.veiculos} veíc, ${res.pessoas} pess)`, 'sucesso');
@@ -547,6 +582,36 @@ function vincularTelaConfiguracoes() {
         );
     });
 
+    document.getElementById('btn-definir-missao')?.addEventListener('click', async () => {
+        const input = document.getElementById('cfg-municipio-missao');
+        const municipio = input?.value?.trim();
+        if (!municipio) { exibirAviso('Digite o nome do município.', 'erro'); return; }
+        await window.ipiDB.definirMissao(municipio);
+        document.getElementById('missao-atual-info').textContent = `Missão: ${municipio}`;
+        exibirAviso(`Missão definida: ${municipio}`, 'sucesso');
+    });
+
+    // Popula datalist de municípios
+    const datalist = document.getElementById('lista-municipios');
+    if (datalist && typeof GOIAS_MUNICIPIOS !== 'undefined') {
+        datalist.innerHTML = GOIAS_MUNICIPIOS.map(m => `<option value="${m}">`).join('');
+    }
+
+    // Atualiza info do operador logado
+    const operador = window.servicoAuth.obterOperador();
+    if (operador) {
+        document.getElementById('cfg-operador-nome').textContent = operador.nome;
+        document.getElementById('cfg-operador-matricula').textContent = `Matrícula: ${operador.matricula}`;
+    }
+
+    // Carrega missão atual
+    window.ipiDB.obterMissao().then(municipio => {
+        if (municipio) {
+            document.getElementById('cfg-municipio-missao').value = municipio;
+            document.getElementById('missao-atual-info').textContent = `Missão: ${municipio}`;
+        }
+    });
+
     // Botões de teste de modo
     document.getElementById('teste-nuvem')?.addEventListener('click', () => {
         window.connMgr.forcarModo('NUVEM');
@@ -560,23 +625,6 @@ function vincularTelaConfiguracoes() {
         window.connMgr.forcarModo('APAGAO');
         exibirAviso('Simulando modo BLACKOUT.', 'erro');
     });
-}
-
-async function carregarConfiguracoesPolicial() {
-    const nome = await window.ipiDB.obterConfiguracao('nome_policial');
-    const matricula = await window.ipiDB.obterConfiguracao('matricula_policial');
-    if (nome) { document.getElementById('cfg-nome-policial').value = nome; }
-    if (matricula) { document.getElementById('cfg-matricula-policial').value = matricula; }
-    definirTexto('nome-operador', nome || 'POLICIAL');
-}
-
-async function salvarConfiguracoesPolicial() {
-    const nome = document.getElementById('cfg-nome-policial')?.value?.trim();
-    const matricula = document.getElementById('cfg-matricula-policial')?.value?.trim();
-    if (nome) await window.ipiDB.definirConfiguracao('nome_policial', nome);
-    if (matricula) await window.ipiDB.definirConfiguracao('matricula_policial', matricula);
-    definirTexto('nome-operador', nome || 'POLICIAL');
-    exibirAviso('Configurações salvas.', 'sucesso');
 }
 
 async function atualizarEstatisticasCache() {

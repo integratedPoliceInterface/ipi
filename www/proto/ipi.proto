@@ -3,6 +3,17 @@ syntax = "proto3";
 package ipi;
 
 // ============================================================
+// Policial (Login / Autenticação)
+// ============================================================
+message Policial {
+    string id = 1;
+    string matricula = 2;
+    string nome = 3;
+    string senha_hash = 4;
+    string criada_em = 5;
+}
+
+// ============================================================
 // Registro de Atendimento Integrado (RAI) / Ocorrência
 // ============================================================
 message RAI {
@@ -15,6 +26,7 @@ message RAI {
     repeated Pessoa pessoas = 7;
     repeated Veiculo veiculos = 8;
     bool sincronizado = 9;
+    string municipio = 10; // Município da operação/missão
 }
 
 // ============================================================
@@ -37,6 +49,7 @@ message Pessoa {
     string observacao = 5;
     string situacao = 6; // REGULAR, MANDADO_PRISAO, FICHA_CRIMINAL
     string envolvimento = 7; // Suspeito, Vítima, Testemunha, Autor
+    string municipio = 8;
 }
 
 // ============================================================
@@ -50,6 +63,7 @@ message Veiculo {
     string proprietario = 5;
     string numero_boletim = 6;
     string situacao = 7; // REGULAR, ROUBADO, FURTADO, QUEIXADO
+    string municipio = 8;
 }
 
 // ============================================================

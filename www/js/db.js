@@ -188,6 +188,14 @@ class IPIDatabase {
         ]);
     }
 
+    // ─── MISSÃO ───
+    definirMissao(municipio) {
+        return this.definirConfiguracao('missao_municipio', municipio);
+    }
+    obterMissao() {
+        return this.obterConfiguracao('missao_municipio');
+    }
+
     // ─── MAPA OFFLINE (PMTiles) ───
     salvarMapaOffline(dados) {
         return this._salvar(ARMAZENS.MAPA_OFFLINE, {
@@ -211,17 +219,20 @@ class IPIDatabase {
         return mapa ? mapa.dados.byteLength : 0;
     }
 
-    async atualizarCacheNuvem() {
+    async atualizarCacheNuvem(municipio) {
         if (!window.supabaseClient) throw new Error('Cliente Supabase não inicializado.');
 
         try {
             console.log('[DB] Iniciando atualização de cache da nuvem...');
-            
-            // 1. Buscar dados reais
-            const [respV, respP] = await Promise.all([
-                window.supabaseClient.from('veiculos').select('*'),
-                window.supabaseClient.from('pessoas').select('*')
-            ]);
+
+            let queryV = window.supabaseClient.from('veiculos').select('*');
+            let queryP = window.supabaseClient.from('pessoas').select('*');
+            if (municipio) {
+                queryV = queryV.eq('municipio', municipio);
+                queryP = queryP.eq('municipio', municipio);
+            }
+
+            const [respV, respP] = await Promise.all([queryV, queryP]);
 
             if (respV.error) throw respV.error;
             if (respP.error) throw respP.error;
