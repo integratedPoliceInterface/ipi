@@ -9,14 +9,16 @@ const ARMAZENS = {
     OCORRENCIAS: 'ocorrencias',
     VEICULOS:    'veiculos',
     PESSOAS:     'pessoas',
-    CONFIGURACOES: 'configuracoes'
+    CONFIGURACOES: 'configuracoes',
+    MAPA_OFFLINE: 'mapa_offline'
 };
 
 const _SCHEMA = {
     ocorrencias:    { keyPath: 'id', indexes: ['sincronizado', 'tipo'] },
     veiculos:       { keyPath: 'placa', indexes: ['status'] },
     pessoas:        { keyPath: 'cpf', indexes: ['status'] },
-    configuracoes:  { keyPath: 'chave', indexes: [] }
+    configuracoes:  { keyPath: 'chave', indexes: [] },
+    mapa_offline:   { keyPath: 'id', indexes: [] }
 };
 
 class IPIDatabase {
@@ -184,6 +186,29 @@ class IPIDatabase {
             this._limpar(ARMAZENS.VEICULOS),
             this._limpar(ARMAZENS.PESSOAS)
         ]);
+    }
+
+    // ─── MAPA OFFLINE (PMTiles) ───
+    salvarMapaOffline(dados) {
+        return this._salvar(ARMAZENS.MAPA_OFFLINE, {
+            id: 'goias',
+            dados,
+            dataDownload: new Date().toISOString()
+        });
+    }
+    obterMapaOffline() {
+        return this._obter(ARMAZENS.MAPA_OFFLINE, 'goias');
+    }
+    deletarMapaOffline() {
+        return this._deletar(ARMAZENS.MAPA_OFFLINE, 'goias');
+    }
+    async temMapaOffline() {
+        const mapa = await this.obterMapaOffline();
+        return !!mapa;
+    }
+    async obterTamanhoMapaOffline() {
+        const mapa = await this.obterMapaOffline();
+        return mapa ? mapa.dados.byteLength : 0;
     }
 
     async atualizarCacheNuvem() {

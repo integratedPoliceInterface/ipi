@@ -364,6 +364,34 @@
                     </button>
                 </div>
                 <div class="secao-configuracoes">
+                    <div class="titulo-secao-configuracoes">MAPA OFFLINE (PMTiles)</div>
+                    <div id="status-mapa-offline" class="grupo-formulario">
+                        <label class="rotulo-formulario">Status</label>
+                        <span id="mapa-offline-status" style="color:var(--gray-muted)">Não baixado</span>
+                        <span id="mapa-offline-tamanho" style="font-size:0.75rem;color:var(--gray-muted);margin-left:8px;"></span>
+                    </div>
+                    <div class="grupo-formulario">
+                        <label class="rotulo-formulario" for="cfg-url-pmtiles">URL remota (opcional)</label>
+                        <input class="controle-formulario" type="url" id="cfg-url-pmtiles"
+                            placeholder="https://exemplo.com/goias.pmtiles" />
+                    </div>
+                    <div id="progresso-mapa" style="display:none; margin:8px 0;">
+                        <progress id="barra-progresso-mapa" value="0" max="100" style="width:100%;height:8px;border-radius:4px;"></progress>
+                        <span id="texto-progresso-mapa" style="font-size:0.8rem;color:var(--gray-muted)">0%</span>
+                    </div>
+                    <button class="btn-secundario" id="btn-baixar-mapa">
+                        📥 Baixar Mapa Offline (URL)
+                    </button>
+                    <div style="margin:6px 0;text-align:center;font-size:0.75rem;color:var(--gray-muted)">— ou —</div>
+                    <label class="btn-secundario" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+                        📁 Selecionar Arquivo .pmtiles
+                        <input type="file" id="input-arquivo-pmtiles" accept=".pmtiles" style="display:none" />
+                    </label>
+                    <button class="btn-perigo-outline" id="btn-remover-mapa" style="display:none;">
+                        ✕ Remover Mapa Offline
+                    </button>
+                </div>
+                <div class="secao-configuracoes">
                     <div class="titulo-secao-configuracoes">VERSÃO</div>
                     <p class="texto-versao">IPI v1.0.0 · SSP-GO · Build 2026</p>
                 </div>
@@ -435,6 +463,9 @@
     <script src="./js/app.js"></script>
     <script src="./js/aparencia.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="./js/vendor/pmtiles.js"></script>
+    <script src="./js/vendor/protomaps-leaflet.js"></script>
+    <script src="./js/goias-municipios.js"></script>
     <script src="./js/mapa.js"></script>
 </body>
 
