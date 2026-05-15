@@ -36,14 +36,8 @@ class ServicoSincronizacao extends EventTarget {
         this.dispatchEvent(new Event('inicio-sync'));
 
         try {
+            // PUSH: enviar pendentes
             const pendentes = await window.ipiDB.obterOcorrenciasPendentes();
-            if (pendentes.length === 0) {
-                this._sincronizando = false;
-                this.dispatchEvent(new Event('fim-sync'));
-                return;
-            }
-
-            console.log(`[SyncSvc] Sincronizando ${pendentes.length} ocorrência(s) pendente(s)...`);
             let contagemSincronizados = 0;
 
             for (const ocorrencia of pendentes) {
@@ -54,14 +48,62 @@ class ServicoSincronizacao extends EventTarget {
                 }
             }
 
-            this.dispatchEvent(new CustomEvent('sync-completo', { detail: { sincronizados: contagemSincronizados, total: pendentes.length } }));
-            console.log(`[SyncSvc] Sincronizados ${contagemSincronizados}/${pendentes.length}`);
+            if (contagemSincronizados > 0) {
+                console.log(`[SyncSvc] Push: ${contagemSincronizados}/${pendentes.length}`);
+            }
+
+            // PULL: buscar RAIs de outros operadores no mesmo município
+            await this._puxarRAIs();
+
+            this.dispatchEvent(new CustomEvent('sync-completo', {
+                detail: { sincronizados: contagemSincronizados, total: pendentes.length }
+            }));
         } catch (err) {
             console.error('[SyncSvc] Erro na sincronização:', err);
         }
 
         this._sincronizando = false;
         this.dispatchEvent(new Event('fim-sync'));
+    }
+
+    async _puxarRAIs() {
+        if (!window.supabaseClient) return;
+        const municipio = await window.ipiDB.obterMissao();
+        if (!municipio) return;
+
+        const operador = window.servicoAuth.obterOperador();
+        const minhasRAIs = await window.ipiDB.obterTodasOcorrencias();
+        const idsLocais = new Set(minhasRAIs.map(o => o.id));
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('ocorrencias')
+                .select('*')
+                .eq('municipio', municipio)
+                .neq('matricula_operador', operador ? operador.matricula : '')
+                .order('data_hora', { ascending: false });
+
+            if (error) throw error;
+            if (!data || data.length === 0) return;
+
+            let novas = 0;
+            for (const oc of data) {
+                if (!idsLocais.has(oc.id)) {
+                    oc.sincronizado = true;
+                    oc.tipo = oc.tipo || 'OPERAÇÃO';
+                    oc.descricao = oc.descricao || '';
+                    oc.pessoas = oc.pessoas || [];
+                    oc.veiculos = oc.veiculos || [];
+                    await window.ipiDB.salvarOcorrencia(oc);
+                    novas++;
+                }
+            }
+            if (novas > 0) {
+                console.log(`[SyncSvc] Pull: ${novas} nova(s) ocorrência(s) de ${municipio}`);
+            }
+        } catch (e) {
+            console.warn('[SyncSvc] Erro ao puxar RAIs:', e);
+        }
     }
 
     async _enviar(ocorrencia) {
@@ -84,7 +126,8 @@ class ServicoSincronizacao extends EventTarget {
                     latitude: ocorrencia.latitude || null,
                     longitude: ocorrencia.longitude || null,
                     referencia_endereco: ocorrencia.referencia_endereco || null,
-                    data_hora: ocorrencia.data_hora || new Date().toISOString()
+                    data_hora: ocorrencia.data_hora || new Date().toISOString(),
+                    municipio: ocorrencia.municipio || null
                 }])
                 .select()
                 .single();

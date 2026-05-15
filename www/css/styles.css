@@ -1566,3 +1566,118 @@ img {
 #btn-config-fab {
     line-height: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   TELA DE LOGIN
+   ═══════════════════════════════════════════════════════════════ */
+#tela-login {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px;
+}
+
+#tela-login.ativa {
+    display: flex;
+}
+
+body:has(#tela-login.ativa) #status-barra,
+body:has(#tela-login.ativa) #navegacao-inferior {
+    display: none;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.login-logo {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-brasao {
+    width: 80px;
+    height: auto;
+    filter: drop-shadow(0 0 8px rgba(63, 143, 79, 0.4));
+}
+
+.login-titulo {
+    font-family: var(--font-title);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--green-neon);
+    letter-spacing: 6px;
+    text-shadow: 0 0 12px rgba(63, 143, 79, 0.5);
+}
+
+.login-subtitulo {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--gray-muted);
+    letter-spacing: 2px;
+}
+
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: var(--bg-card);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: var(--green-neon);
+    box-shadow: 0 0 0 2px rgba(63, 143, 79, 0.2);
+}
+
+.login-input::placeholder {
+    color: var(--gray-muted);
+}
+
+.login-form .btn-primario {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.login-erro {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--red-danger);
+    text-align: center;
+    min-height: 1.2em;
+}
+
+.login-footer {
+    margin-top: 8px;
+    text-align: center;
+}
+
+.login-footer p {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--gray-muted);
+    letter-spacing: 1px;
+}

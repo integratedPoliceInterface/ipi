@@ -61,8 +61,27 @@
 
     <!-- CONTAINER PRINCIPAL -->
     <div id="container-app">
+        <!-- ─── TELA: LOGIN ─── -->
+        <div class="tela ativa" id="tela-login">
+            <div class="login-container">
+                <div class="login-logo">
+                    <img src="./img/Brasao_PMGO.png" alt="PMGO" class="login-brasao" />
+                    <h1 class="login-titulo">IPI</h1>
+                    <p class="login-subtitulo">Interface Policial Integrada</p>
+                </div>
+                <div class="login-form">
+                    <input class="login-input" type="text" id="login-matricula" placeholder="Matrícula" autocomplete="username" />
+                    <input class="login-input" type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" />
+                    <button class="btn-primario" id="btn-login">ENTRAR</button>
+                    <div id="login-erro" class="login-erro"></div>
+                </div>
+                <div class="login-footer">
+                    <p>SSP-GO · v1.0.0</p>
+                </div>
+            </div>
+        </div>
         <!-- ─── TELA: DASHBOARD (início) ─── -->
-        <div class="tela ativa" id="tela-inicio">
+        <div class="tela" id="tela-inicio">
             <div class="cabecalho-tela">
                 <h1 class="titulo-tela">PAINEL TÁTICO</h1>
                 <div class="badge-operador" id="badge-operador">
@@ -292,20 +311,27 @@
             </div>
             <div class="container-configuracoes">
                 <div class="secao-configuracoes">
-                    <div class="titulo-secao-configuracoes">OPERADOR</div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="cfg-nome-policial">Nome do Policial</label>
-                        <input class="controle-formulario" type="text" id="cfg-nome-policial"
-                            placeholder="Nome completo" />
+                    <div class="titulo-secao-configuracoes">OPERADOR LOGADO</div>
+                    <div class="grupo-formulario" style="text-align:center;">
+                        <span id="cfg-operador-nome" style="font-weight:700;font-size:1.1rem;">---</span><br />
+                        <span id="cfg-operador-matricula" style="color:var(--gray-muted);font-size:0.85rem;">---</span>
                     </div>
-                    <div class="grupo-formulario">
-                        <label class="rotulo-formulario" for="cfg-matricula-policial">Matrícula / RE</label>
-                        <input class="controle-formulario" type="text" id="cfg-matricula-policial"
-                            placeholder="Número de registro" />
-                    </div>
-                    <button class="btn-primario" id="btn-salvar-configuracoes">
-                        SALVAR CONFIGURAÇÕES
+                    <button class="btn-perigo-outline" id="btn-logout" style="width:100%;">
+                        SAIR
                     </button>
+                </div>
+                <div class="secao-configuracoes">
+                    <div class="titulo-secao-configuracoes">MISSÃO ATUAL</div>
+                    <div class="grupo-formulario">
+                        <label class="rotulo-formulario" for="cfg-municipio-missao">Município da Operação</label>
+                        <input class="controle-formulario" type="text" id="cfg-municipio-missao"
+                            list="lista-municipios" placeholder="Digite o município" autocomplete="off" />
+                        <datalist id="lista-municipios"></datalist>
+                    </div>
+                    <button class="btn-primario" id="btn-definir-missao">
+                        DEFINIR MISSÃO
+                    </button>
+                    <div id="missao-atual-info" style="margin-top:8px;font-size:0.85rem;color:var(--gray-muted);text-align:center;"></div>
                 </div>
                 <div class="secao-configuracoes">
                     <div class="titulo-secao-configuracoes">
@@ -356,6 +382,9 @@
                             Pessoas
                         </div>
                     </div>
+                    <button class="btn-primario" id="btn-sincronizar-cache">
+                        ☁ Sincronizar Cache (Nuvem)
+                    </button>
                     <button class="btn-secundario" id="btn-recarregar-seed">
                         ↺ Recarregar Dados Demo
                     </button>
@@ -460,6 +489,8 @@
     <script src="./js/conectividade.js"></script>
     <script src="./js/servicoBusca.js"></script>
     <script src="./js/servicoSincronizacao.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/seed-policiais.js"></script>
     <script src="./js/app.js"></script>
     <script src="./js/aparencia.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

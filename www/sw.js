@@ -12,6 +12,8 @@ const URLS_ESTATICOS = [
   './js/mapa.js',
   './js/goias-municipios.js',
   './js/configSupabase.js',
+  './js/auth.js',
+  './js/seed-policiais.js',
   './js/vendor/protomaps-leaflet.js',
   './js/vendor/pmtiles.js',
   './img/image.png',
