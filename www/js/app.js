@@ -35,7 +35,12 @@ async function iniciarApp() {
     // 7. Inicia relógio
     iniciarRelogio();
 
-    // 8. Captura GPS automaticamente ao carregar
+    // 8. Registra Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(e => console.warn('[SW]', e));
+    }
+
+    // 9. Captura GPS automaticamente ao carregar
     //capturarGPS();
 
     console.log('[App] IPI iniciado.');
@@ -516,6 +521,8 @@ async function renderizarHistorico() {
    ════════════════════════════════════════════════════════════ */
 function vincularTelaConfiguracoes() {
     document.getElementById('btn-salvar-configuracoes')?.addEventListener('click', salvarConfiguracoesPolicial);
+    vincularMapaOffline();
+
     document.getElementById('btn-sincronizar-cache')?.addEventListener('click', async () => {
         try {
             exibirAviso('Sincronizando cache com a nuvem...', 'info');
@@ -577,6 +584,120 @@ async function atualizarEstatisticasCache() {
     definirTexto('ec-ocorrencias', s.total);
     definirTexto('ec-veiculos', s.veiculos);
     definirTexto('ec-pessoas', s.pessoas);
+}
+
+/* ════════════════════════════════════════════════════════════
+   MAPA OFFLINE
+   ════════════════════════════════════════════════════════════ */
+function vincularMapaOffline() {
+    const btnBaixar = document.getElementById('btn-baixar-mapa');
+    const btnRemover = document.getElementById('btn-remover-mapa');
+    const inputArquivo = document.getElementById('input-arquivo-pmtiles');
+    const statusEl = document.getElementById('mapa-offline-status');
+    const tamanhoEl = document.getElementById('mapa-offline-tamanho');
+    const progressoDiv = document.getElementById('progresso-mapa');
+    const barraProgresso = document.getElementById('barra-progresso-mapa');
+    const textoProgresso = document.getElementById('texto-progresso-mapa');
+    const inputURL = document.getElementById('cfg-url-pmtiles');
+
+    async function carregarURLSalva() {
+        const url = await window.ipiDB.obterConfiguracao('url_pmtiles');
+        if (url && inputURL) inputURL.value = url;
+    }
+    carregarURLSalva();
+    inputURL?.addEventListener('change', async () => {
+        const val = inputURL.value.trim();
+        if (val) await window.ipiDB.definirConfiguracao('url_pmtiles', val);
+    });
+
+    async function aplicarMapaOffline(buf) {
+        await window.ipiDB.salvarMapaOffline(new Uint8Array(buf));
+        if (typeof fonteOfflineURL !== 'undefined' && fonteOfflineURL) {
+            URL.revokeObjectURL(fonteOfflineURL);
+            fonteOfflineURL = null;
+        }
+        if (typeof map !== 'undefined' && map && typeof adicionarCamadaMapa === 'function') {
+            adicionarCamadaMapa();
+        }
+        await atualizarStatus();
+        exibirAviso('Mapa offline carregado com sucesso!', 'sucesso');
+    }
+
+    async function atualizarStatus() {
+        const tem = await window.ipiDB.temMapaOffline();
+        if (tem) {
+            const bytes = await window.ipiDB.obterTamanhoMapaOffline();
+            statusEl.textContent = '✓ Baixado';
+            if (tamanhoEl) tamanhoEl.textContent = `(${(bytes / 1024 / 1024).toFixed(1)} MB)`;
+            btnRemover.style.display = 'inline-block';
+        } else {
+            statusEl.textContent = 'Não baixado';
+            if (tamanhoEl) tamanhoEl.textContent = '';
+            btnRemover.style.display = 'none';
+        }
+    }
+
+    btnBaixar?.addEventListener('click', async () => {
+        const url = inputURL?.value.trim();
+        if (!url) { exibirAviso('Informe a URL do arquivo .pmtiles', 'aviso'); return; }
+        progressoDiv.style.display = 'block';
+        barraProgresso.value = 0;
+        textoProgresso.textContent = 'Iniciando...';
+        btnBaixar.disabled = true;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const total = +res.headers.get('content-length') || 0;
+            const reader = res.body.getReader();
+            const chunks = [];
+            let loaded = 0;
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                loaded += value.length;
+                const pct = total ? Math.round(loaded / total * 100) : 0;
+                barraProgresso.value = pct;
+                textoProgresso.textContent = `${pct}% (${(loaded / 1024 / 1024).toFixed(1)} MB)`;
+            }
+            const blob = new Blob(chunks, { type: 'application/octet-stream' });
+            await aplicarMapaOffline(await blob.arrayBuffer());
+        } catch (err) {
+            console.error(err);
+            exibirAviso('Erro ao baixar. Use o seletor de arquivo local.', 'erro');
+        } finally {
+            progressoDiv.style.display = 'none';
+            btnBaixar.disabled = false;
+        }
+    });
+
+    inputArquivo?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const buf = await file.arrayBuffer();
+            await aplicarMapaOffline(buf);
+        } catch (err) {
+            console.error(err);
+            exibirAviso('Erro ao ler arquivo', 'erro');
+        }
+        inputArquivo.value = '';
+    });
+
+    btnRemover?.addEventListener('click', async () => {
+        await window.ipiDB.deletarMapaOffline();
+        if (typeof fonteOfflineURL !== 'undefined' && fonteOfflineURL) {
+            URL.revokeObjectURL(fonteOfflineURL);
+            fonteOfflineURL = null;
+        }
+        if (typeof map !== 'undefined' && map && typeof adicionarCamadaMapa === 'function') {
+            adicionarCamadaMapa();
+        }
+        await atualizarStatus();
+        exibirAviso('Mapa offline removido', 'info');
+    });
+
+    atualizarStatus();
 }
 
 /* ════════════════════════════════════════════════════════════
