@@ -26,15 +26,17 @@ function normalizar(str) {
 }
 
 async function obterFonteMapa() {
+    if (fonteOfflineURL) return fonteOfflineURL;
+
     const offline = await window.ipiDB.obterMapaOffline();
     if (offline && offline.dados && offline.dados.byteLength > 0) {
-        if (!fonteOfflineURL) {
-            const blob = new Blob([offline.dados]);
-            fonteOfflineURL = URL.createObjectURL(blob);
-        }
+        const blob = new Blob([offline.dados]);
+        fonteOfflineURL = URL.createObjectURL(blob);
+        console.log('[Mapa] Usando PMTiles do IndexedDB');
         return fonteOfflineURL;
     }
-    return null;
+
+    return './maps/goias.pmtiles';
 }
 
 async function adicionarCamadaMapa() {
@@ -42,21 +44,19 @@ async function adicionarCamadaMapa() {
     if (camadaVetor) { map.removeLayer(camadaVetor); camadaVetor = null; }
 
     const modo = window.connMgr.obterModo();
-    const temOffline = await window.ipiDB.temMapaOffline();
 
     if (modo === 'APAGAO' || !navigator.onLine) {
-        if (temOffline) {
-            const url = await obterFonteMapa();
-            if (url && typeof window.pmtiles?.PMTiles !== 'undefined') {
-                const fonte = new window.pmtiles.PMTiles(url);
-                camadaVetor = protomapsL.leafletLayer({ url: fonte, flavor: 'dark' }).addTo(map);
-            }
+        const url = await obterFonteMapa();
+        if (url && typeof window.pmtiles?.PMTiles !== 'undefined') {
+            const fonte = new window.pmtiles.PMTiles(url);
+            camadaVetor = protomapsL.leafletLayer({ url: fonte, flavor: 'dark' }).addTo(map);
         }
-    } else {
-        camadaRaster = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        return;
     }
+
+    camadaRaster = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
 }
 
 function iniciarMapa() {
