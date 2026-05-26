@@ -5,8 +5,8 @@
  * Utiliza serialização Protobuf para economia de banda (seção 17.2, 21.2).
  */
 
-const INTERVALO_SINCRONIZACAO = 15000;
-const API_BASE = null;
+var INTERVALO_SINCRONIZACAO = 15000;
+var API_BASE = null;
 
 class ServicoSincronizacao extends EventTarget {
     constructor() {

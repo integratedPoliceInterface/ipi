@@ -3,7 +3,7 @@
  * Corresponde ao modelo documentado no DER do projeto.
  */
 
-const IPI_SCHEMA = `
+var IPI_SCHEMA = `
 CREATE TABLE IF NOT EXISTS policiais (
     matricula TEXT PRIMARY KEY,
     nome TEXT NOT NULL,

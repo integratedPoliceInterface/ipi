@@ -9,16 +9,16 @@
  * O modo forçado manual é apenas para TESTE e exibe indicador visual.
  */
 
-const MODOS = {
+var MODOS = {
     NUVEM: 'NUVEM',
     SMS: 'SMS',
     APAGAO: 'APAGAO'
 };
 
-const CLOUD_CONEXAO_URL = null;
-const INTERVALO_VERIFICACAO = 20000;
-const LIMITE_SMS = 3;
-const LIMITE_APAGAO = 6;
+var CLOUD_CONEXAO_URL = null;
+var INTERVALO_VERIFICACAO = 20000;
+var LIMITE_SMS = 3;
+var LIMITE_APAGAO = 6;
 
 class GerenciadorConectividade extends EventTarget {
     constructor() {

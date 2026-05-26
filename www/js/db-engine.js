@@ -4,8 +4,8 @@
  * Usa sql.js (Web) ou @capacitor-community/sqlite (Android/iOS).
  */
 
-const DB_NOME = 'ipi_db';
-const DB_CHAVE = 'ipi-crypt-key-v1';
+var DB_NOME = 'ipi_db';
+var DB_CHAVE = 'ipi-crypt-key-v1';
 
 let engine = null;
 

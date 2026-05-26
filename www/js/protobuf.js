@@ -4,9 +4,9 @@
  * Conforme documentado na arquitetura: seção 21.2 e 17.2.
  */
 
-const PROTO_PATH = './proto/ipi.proto';
-let ProtoRoot = null;
-let protoCarregado = false;
+var PROTO_PATH = './proto/ipi.proto';
+var ProtoRoot = null;
+var protoCarregado = false;
 
 async function carregarProto() {
     if (protoCarregado) return true;
