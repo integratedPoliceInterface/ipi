@@ -69,11 +69,28 @@
                     <h1 class="login-titulo">IPI</h1>
                     <p class="login-subtitulo">Interface Policial Integrada</p>
                 </div>
-                <div class="login-form">
+                <div class="login-form" id="login-form-padrao">
                     <input class="login-input" type="text" id="login-matricula" placeholder="Matrícula" autocomplete="username" />
-                    <input class="login-input" type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" />
+                    <div class="login-input-senha">
+                        <input class="login-input" type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" />
+                        <button class="btn-olho" id="btn-olho-senha" type="button" aria-label="Mostrar senha">👁</button>
+                    </div>
                     <button class="btn-primario" id="btn-login">ENTRAR</button>
                     <div id="login-erro" class="login-erro"></div>
+                    <button class="btn-senha-link" id="btn-esqueci-senha" type="button">ESQUECI MINHA SENHA</button>
+                </div>
+
+                <div class="login-form" id="login-form-reset" hidden>
+                    <p class="login-subtitulo" style="margin-bottom:4px">REDEFINIR SENHA</p>
+                    <input class="login-input" type="text" id="reset-matricula" placeholder="Matrícula" autocomplete="off" />
+                    <div class="login-input-senha">
+                        <input class="login-input" type="password" id="reset-senha" placeholder="Nova senha" autocomplete="new-password" />
+                        <button class="btn-olho" id="btn-olho-reset" type="button" aria-label="Mostrar senha">👁</button>
+                    </div>
+                    <input class="login-input" type="password" id="reset-confirmar" placeholder="Confirmar senha" autocomplete="new-password" />
+                    <button class="btn-primario" id="btn-redefinir">REDEFINIR</button>
+                    <div id="reset-erro" class="login-erro"></div>
+                    <button class="btn-senha-link" id="btn-voltar-login" type="button">← VOLTAR AO LOGIN</button>
                 </div>
                 <div class="login-footer">
                     <p>SSP-GO · v1.0.0</p>

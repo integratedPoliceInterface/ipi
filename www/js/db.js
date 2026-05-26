@@ -263,8 +263,8 @@ class IPIDatabase {
         if (!window.supabaseClient) throw new Error('Cliente Supabase não inicializado.');
 
         try {
-            let queryV = window.supabaseClient.from('veiculos').select('*');
-            let queryP = window.supabaseClient.from('pessoas').select('*');
+            let queryV = window.supabaseClient.from('veiculos').select('*').neq('situacao', 'REGULAR');
+            let queryP = window.supabaseClient.from('pessoas').select('*').neq('situacao', 'REGULAR');
             if (municipio) {
                 queryV = queryV.eq('municipio', municipio);
                 queryP = queryP.eq('municipio', municipio);

@@ -55,7 +55,7 @@ class SQLEngine {
         if (typeof initSqlJs === 'undefined') {
             throw new Error('sql.js não carregado. Inclua o script sql-wasm.js.');
         }
-        const SQL = await initSqlJs({ locateFile: file => `https://sql.js.org/dist/${file}` });
+        const SQL = await initSqlJs({ locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${file}` });
         const chaveDerivada = await gerarChaveDerivada(this.chave);
         const dadosCripto = localStorage.getItem(DB_CHAVE);
 

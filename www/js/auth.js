@@ -42,6 +42,22 @@ class ServicoAuth {
         }
     }
 
+    async redefinirSenha(matricula, novaSenha) {
+        if (!matricula || !novaSenha || novaSenha.length < 4) {
+            throw new Error('Senha deve ter no mínimo 4 caracteres.');
+        }
+        var senha_hash = await window.gerarHashSenha(novaSenha);
+        var { data, error } = await window.supabaseClient
+            .from('policiais')
+            .update({ senha_hash })
+            .eq('matricula', matricula)
+            .select()
+            .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('Matrícula não encontrada.');
+        return data;
+    }
+
     async logout() {
         this._sessao = null;
         localStorage.removeItem('ipi_matricula');
