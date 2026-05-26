@@ -81,7 +81,7 @@ Se quiser testar a interface agora mesmo **sem instalar nada**:
 
 1. Navegue até a pasta: `C:\Users\pablo\Desktop\Facul\PI\software\ipi\www\`
 2. Abra o arquivo `index.html` diretamente no **Chrome** ou **Opera GX**
-3. Todas as funcionalidades funcionarão (IndexedDB, GPS, modo offline)
+3. Todas as funcionalidades funcionarão (SQLite, GPS, modo offline)
 
 > **Nota**: Para simular modo mobile, pressione `F12` no Chrome → ícone de dispositivo móvel no topo.
 
@@ -94,19 +94,49 @@ ipi/
 ├── www/                          ← Código principal da aplicação
 │   ├── index.html                ← Shell principal com todos os ecrãs
 │   ├── css/
-│   │   └── theme.css             ← Tema tático dark mode
+│   │   └── styles.css            ← Tema tático dark mode
 │   ├── js/
-│   │   ├── db.js                 ← Banco IndexedDB (offline persistence)
-│   │   ├── connectivity.js       ← Gerenciador de conectividade (3 modos)
-│   │   ├── searchService.js      ← Consulta veículo/pessoa
-│   │   ├── syncService.js        ← Sincronização automática
-│   │   └── app.js                ← Controlador principal da interface
-│   └── proto/
-│       └── ipi.proto             ← Definições Protobuf (para integração futura)
+│   │   ├── db-engine.js          ← Motor SQLite com criptografia AES-256-CBC
+│   │   ├── db-schema.js          ← Schema SQL do banco local
+│   │   ├── db.js                 ← Serviço de banco de dados (API pública)
+│   │   ├── protobuf.js           ← Serialização Protobuf (ipi.proto)
+│   │   ├── sms-service.js        ← Serviço de SMS (modo Fallback - RF-004)
+│   │   ├── conectividade.js      ← Gerenciador de conectividade (3 modos)
+│   │   ├── servicoBusca.js       ← Consulta veículo/pessoa
+│   │   ├── servicoSincronizacao.js ← Sincronização automática + Protobuf
+│   │   ├── auth.js               ← Autenticação PBKDF2
+│   │   ├── app.js                ← Controlador principal da interface
+│   │   ├── aparencia.js          ← Controle de tema (diurno/noturno)
+│   │   ├── mapa.js               ← Leaflet + PMTiles + rotas
+│   │   ├── seed-policiais.js     ← Script de seed de policiais
+│   │   ├── goias-municipios.js   ← 246 municípios de Goiás
+│   │   ├── configSupabase.js     ← Configuração Supabase (SDK)
+│   │   └── supabaseApi.js        ← Cliente REST Supabase (fallback)
+│   ├── proto/
+│   │   └── ipi.proto             ← Definições Protobuf (serialização binária)
+│   ├── sw.js                     ← Service Worker (cache + range requests)
+│   ├── maps/goias.pmtiles        ← Mapa offline do estado de Goiás
+│   └── img/                      ← Brasões e ícones
 ├── package.json                  ← Dependências npm + Capacitor
 ├── capacitor.config.json         ← Configuração do Capacitor
-└── android/                      ← (criado após `npx cap add android`)
+└── vercel.json                   ← Deploy Vercel
 ```
+
+---
+
+## Tecnologias do Projeto
+
+| Camada | Tecnologia | Finalidade |
+|--------|-----------|------------|
+| Frontend | HTML5 + CSS3 + Vanilla JS | Interface do usuário |
+| Mobile | Capacitor 5 | Wrapper nativo Android/iOS |
+| Banco Local | SQLite (sql.js / @capacitor-community/sqlite) | Persistência offline criptografada |
+| Criptografia | AES-256-CBC + PBKDF2 | Proteção dos dados em repouso (RNF-001) |
+| Serialização | Protocol Buffers (protobufjs) | Economia de banda na transmissão |
+| Backend Cloud | Supabase (PostgreSQL + REST) | Sincronização central SSP-GO |
+| Mapas | Leaflet + Protomaps + PMTiles | Mapas offline (Goiás) |
+| Fallback | SMS (@capacitor/sms) | Consultas via mensagem de texto (RF-004) |
+| Autenticação | PBKDF2 + SHA-256 | Login seguro do operador |
 
 ---
 
@@ -115,13 +145,47 @@ ipi/
 | Módulo | Descrição | Status |
 |--------|-----------|--------|
 | Dashboard Tático | Painel principal com modo de conectividade | ✅ |
-| Novo RAI | Registro de Atendimento Integrado | ✅ |
-| Consulta Veículo | Busca por placa (CLOUD/FALLBACK/BLACKOUT) | ✅ |
-| Consulta Pessoa | Busca por CPF ou nome | ✅ |
-| Histórico | Lista de RAIs registrados com status sync | ✅ |
-| Persistência Local | IndexedDB com reset e seed de dados | ✅ |
-| 3 Modos de Operação | CLOUD → FALLBACK → BLACKOUT automático | ✅ |
-| GPS automático | Captura de localização no RAI | ✅ |
-| Sincronização | Upload automático ao retornar ao CLOUD | ✅ |
-| Configurações | Dados do policial, teste de modos | ✅ |
-| Capacitor | Configurado para build Android/iOS | ✅ |
+| Novo RAI | Registro de Atendimento Integrado (RF-001) | ✅ |
+| Consulta Veículo | Busca por placa (NUVEM/FALLBACK/BLACKOUT) (RF-002) | ✅ |
+| Consulta Pessoa | Busca por CPF ou nome (RF-002) | ✅ |
+| Sincronização Automática | Push/Pull com servidor central (RF-003) | ✅ |
+| Fallback SMS | Consultas via SMS codificado (RF-004) | ✅ |
+| Mapas Offline | PMTiles + Leaflet + rotas offline (RF-005) | ✅ |
+| Banco SQLite Criptografado | SQLite com AES-256-CBC (RNF-001) | ✅ |
+| Modo Tático | Alto contraste, tema diurno/noturno (RNF-002) | ✅ |
+| 3 Modos de Operação | NUVEM → FALLBACK → BLACKOUT automático (RN-007) | ✅ |
+| GPS automático | Captura de localização no RAI (RN-004) | ✅ |
+| Persistência Local | SQLite com seed de dados demo | ✅ |
+| Cache por Região | Filtro por município da missão (RN-005) | ✅ |
+| Service Worker | Cache estático + range requests para mapas | ✅ |
+| Autenticação PBKDF2 | Login com hash de senha | ✅ |
+
+---
+
+## Como cada discrepância documentação × código foi corrigida
+
+| Item | Documentação dizia | O que foi implementado |
+|------|-------------------|----------------------|
+| Banco de dados | SQLite criptografado | `db-engine.js` + `db-schema.js`: SQLite com criptografia AES-256-CBC |
+| Criptografia em repouso | Dados protegidos | SQLite export → AES-256-CBC via Web Crypto API (web) / SQLCipher (nativo) |
+| Protocol Buffers | Serialização binária | `protobuf.js`: carrega e usa `ipi.proto` → economia de ~60% no payload |
+| SMS Fallback | Consultas via SMS | `sms-service.js`: envia SMS real via `@capacitor/sms` + fallback via link `sms:` |
+| Alternância de modo | Automática (RN-007) | Automática por padrão; modo teste com indicador visual + botão "Voltar ao Automático" |
+| Mapa Offline | "Não finalizado" | Já estava implementado (Leaflet + PMTiles + IndexedDB → agora SQLite) |
+
+---
+
+## Banco de Dados SQL (SQLite Local)
+
+O schema local segue exatamente o modelo do Supabase:
+
+```sql
+- policiais      (matricula, nome, senha_hash, unidade, criada_em)
+- ocorrencias    (id, matricula_operador, tipo, descricao, latitude, longitude, ...)
+- pessoas        (cpf, nome, data_nascimento, tipo_mandado, observacao, situacao, municipio)
+- veiculos       (placa, modelo, cor, ano_fabricacao, proprietario, situacao, municipio)
+- envolvidos     (ocorrencia_id, cpf_pessoa, envolvimento)
+- veiculos_envolvidos (ocorrencia_id, placa_veiculo)
+- configuracoes  (chave, valor)
+- mapa_offline   (id, dados, data_download)
+```

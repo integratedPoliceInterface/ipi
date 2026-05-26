@@ -7,7 +7,13 @@
    INICIALIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 async function iniciarApp() {
-    await window.ipiDB.abrir();
+    const operador = await window.servicoAuth.verificarSessao();
+    const chaveCripto = operador
+        ? await gerarChaveCripto(operador.matricula)
+        : 'ipi_anonimo';
+
+    await window.ipiDB.abrir(chaveCripto);
+    await window.servicoSMS.iniciar();
     await window.connMgr.iniciar();
     window.servicoSincronizacao.iniciar(window.connMgr);
 
@@ -16,7 +22,6 @@ async function iniciarApp() {
     vincularLogin();
     vincularEventosGlobais();
 
-    const operador = await window.servicoAuth.verificarSessao();
     if (operador) {
         await posLogin(operador);
     }
@@ -26,6 +31,15 @@ async function iniciarApp() {
         navigator.serviceWorker.register('./sw.js').catch(e => console.warn('[SW]', e));
     }
     console.log('[App] IPI iniciado.');
+}
+
+async function gerarChaveCripto(matricula) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(matricula + ':ipi:2026');
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0')).join('')
+        .substring(0, 32);
 }
 
 async function posLogin(operador) {
@@ -51,6 +65,8 @@ function vincularLogin() {
 
     document.getElementById('btn-logout')?.addEventListener('click', async () => {
         await window.servicoAuth.logout();
+        const chaveAnonima = await gerarChaveCripto('anonimo');
+        await window.ipiEngine.rechavear(chaveAnonima);
         document.getElementById('login-matricula').value = '';
         document.getElementById('login-senha').value = '';
         document.getElementById('login-erro').textContent = '';
@@ -72,6 +88,8 @@ async function executarLogin() {
 
     const operador = await window.servicoAuth.login(matricula, senha);
     if (operador) {
+        const novaChave = await gerarChaveCripto(operador.matricula);
+        await window.ipiEngine.rechavear(novaChave);
         await posLogin(operador);
     } else {
         erroEl.textContent = 'Matrícula ou senha inválidos.';
@@ -615,16 +633,33 @@ function vincularTelaConfiguracoes() {
     // Botões de teste de modo
     document.getElementById('teste-nuvem')?.addEventListener('click', () => {
         window.connMgr.forcarModo('NUVEM');
-        exibirAviso('Simulando modo NUVEM.', 'sucesso');
+        exibirAviso('MODO TESTE: Simulando NUVEM.', 'sucesso');
     });
     document.getElementById('teste-contingencia')?.addEventListener('click', () => {
         window.connMgr.forcarModo('SMS');
-        exibirAviso('Simulando modo CONTINGÊNCIA (SMS).', 'aviso');
+        exibirAviso('MODO TESTE: Simulando CONTINGÊNCIA (SMS).', 'aviso');
     });
     document.getElementById('teste-apagao')?.addEventListener('click', () => {
         window.connMgr.forcarModo('APAGAO');
-        exibirAviso('Simulando modo BLACKOUT.', 'erro');
+        exibirAviso('MODO TESTE: Simulando BLACKOUT.', 'erro');
     });
+
+    // Botão para retornar ao modo automático (libera forçamento manual)
+    const btnAuto = document.getElementById('teste-automatico');
+    if (!btnAuto) {
+        const container = document.querySelector('.switch-modo-teste');
+        if (container) {
+            const btn = document.createElement('button');
+            btn.className = 'botao-teste-modo auto-btn';
+            btn.id = 'teste-automatico';
+            btn.textContent = '↻ Voltar ao Automático';
+            container.appendChild(btn);
+            btn.addEventListener('click', () => {
+                window.connMgr.liberarForca();
+                exibirAviso('Modo automático restaurado.', 'info');
+            });
+        }
+    }
 }
 
 async function atualizarEstatisticasCache() {

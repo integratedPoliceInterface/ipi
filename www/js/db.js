@@ -1,230 +1,268 @@
 /**
- * IPI - Serviço de Banco de Dados (IndexedDB)
- * Armazenamento local persistente com sincronização via Supabase.
+ * IPI - Serviço de Banco de Dados (SQLite Criptografado)
+ * Armazenamento local persistente com criptografia e sincronização via Supabase.
+ * Em conformidade com o RNF-001 (Segurança e Sigilo dos Dados Locais).
  */
 
-const DB_NOME = 'ipi_db';
-
-const ARMAZENS = {
-    OCORRENCIAS: 'ocorrencias',
-    VEICULOS:    'veiculos',
-    PESSOAS:     'pessoas',
-    CONFIGURACOES: 'configuracoes',
-    MAPA_OFFLINE: 'mapa_offline'
-};
-
-const _SCHEMA = {
-    ocorrencias:    { keyPath: 'id', indexes: ['sincronizado', 'tipo'] },
-    veiculos:       { keyPath: 'placa', indexes: ['status'] },
-    pessoas:        { keyPath: 'cpf', indexes: ['status'] },
-    configuracoes:  { keyPath: 'chave', indexes: [] },
-    mapa_offline:   { keyPath: 'id', indexes: [] }
-};
-
 class IPIDatabase {
-    constructor() {
-        this.db = null;
+    async abrir(senhaMestre) {
+        await window.ipiEngine.abrir(senhaMestre);
+        await window.inicializarSchema();
     }
 
-    abrir() {
-        return this._abrirVersao(0);
-    }
-
-    _abrirVersao(versao) {
-        return new Promise((resolve, reject) => {
-            const req = versao === 0 ? indexedDB.open(DB_NOME) : indexedDB.open(DB_NOME, versao);
-
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                for (const [nome, cfg] of Object.entries(_SCHEMA)) {
-                    if (!db.objectStoreNames.contains(nome)) {
-                        const st = db.createObjectStore(nome, { keyPath: cfg.keyPath });
-                        for (const idx of cfg.indexes) {
-                            st.createIndex(idx, idx, { unique: false });
-                        }
-                    }
-                }
-            };
-
-            req.onsuccess = (e) => {
-                const db = e.target.result;
-                if (versao === 0) {
-                    const precisaUpgrade = Object.keys(_SCHEMA).some(n => !db.objectStoreNames.contains(n));
-                    if (precisaUpgrade) {
-                        const novaVersao = db.version + 1;
-                        db.close();
-                        resolve(this._abrirVersao(novaVersao));
-                        return;
-                    }
-                }
-                this.db = db;
-                resolve(this.db);
-            };
-            req.onerror = (e) => reject(e.target.error);
-        });
-    }
-
-    // ─── Auxiliares Genéricos ───
-    _transacao(armazem, modo) {
-        return this.db.transaction([armazem], modo).objectStore(armazem);
-    }
-
-    _salvar(nomeArmazem, obj) {
-        return new Promise((res, rej) => {
-            const req = this._transacao(nomeArmazem, 'readwrite').put(obj);
-            req.onsuccess = () => res(obj);
-            req.onerror  = (e) => rej(e.target.error);
-        });
-    }
-
-    _obterTodos(nomeArmazem) {
-        return new Promise((res, rej) => {
-            const req = this._transacao(nomeArmazem, 'readonly').getAll();
-            req.onsuccess = (e) => res(e.target.result);
-            req.onerror   = (e) => rej(e.target.error);
-        });
-    }
-
-    _obter(nomeArmazem, chave) {
-        return new Promise((res, rej) => {
-            const req = this._transacao(nomeArmazem, 'readonly').get(chave);
-            req.onsuccess = (e) => res(e.target.result || null);
-            req.onerror   = (e) => rej(e.target.error);
-        });
-    }
-
-    _deletar(nomeArmazem, chave) {
-        return new Promise((res, rej) => {
-            const req = this._transacao(nomeArmazem, 'readwrite').delete(chave);
-            req.onsuccess = () => res();
-            req.onerror   = (e) => rej(e.target.error);
-        });
-    }
-
-    _limpar(nomeArmazem) {
-        return new Promise((res, rej) => {
-            const req = this._transacao(nomeArmazem, 'readwrite').clear();
-            req.onsuccess = () => res();
-            req.onerror   = (e) => rej(e.target.error);
-        });
+    async alterarSenha(novaSenha) {
+        if (window.ipiEngine.tipo === 'web') {
+            await window.ipiEngine._salvarWeb();
+        }
+        window.ipiEngine.chave = novaSenha;
+        console.log('[DB] Chave de criptografia alterada.');
     }
 
     // ─── OCORRÊNCIAS ───
-    salvarOcorrencia(ocorrencia) {
-        return this._salvar(ARMAZENS.OCORRENCIAS, ocorrencia);
+
+    async salvarOcorrencia(ocorrencia) {
+        const dados = {
+            id: ocorrencia.id,
+            matricula_operador: ocorrencia.matricula_operador || 'OPERADOR_DESCONHECIDO',
+            tipo: ocorrencia.tipo,
+            descricao: ocorrencia.descricao,
+            latitude: ocorrencia.latitude || null,
+            longitude: ocorrencia.longitude || null,
+            referencia_endereco: ocorrencia.referencia_endereco || '',
+            data_hora: ocorrencia.data_hora || new Date().toISOString(),
+            sincronizado: ocorrencia.sincronizado ? 1 : 0,
+            modo: ocorrencia.modo || 'NUVEM',
+            municipio: ocorrencia.municipio || null,
+            observacoes: ocorrencia.observacoes || ''
+        };
+
+        await window.ipiEngine.salvar('ocorrencias', dados, 'id');
+
+        if (ocorrencia.pessoas && ocorrencia.pessoas.length > 0) {
+            for (const p of ocorrencia.pessoas) {
+                if (p.cpf || p.nome) {
+                    await window.ipiEngine.executar(
+                        `INSERT OR IGNORE INTO envolvidos (ocorrencia_id, cpf_pessoa, envolvimento)
+                         VALUES (?, ?, ?)`,
+                        [ocorrencia.id, p.cpf || '', p.envolvimento || 'Suspeito']
+                    );
+                }
+            }
+        }
+
+        if (ocorrencia.veiculos && ocorrencia.veiculos.length > 0) {
+            for (const v of ocorrencia.veiculos) {
+                if (v.placa) {
+                    await window.ipiEngine.executar(
+                        `INSERT OR IGNORE INTO veiculos_envolvidos (ocorrencia_id, placa_veiculo)
+                         VALUES (?, ?)`,
+                        [ocorrencia.id, v.placa.toUpperCase()]
+                    );
+                }
+            }
+        }
     }
-    obterTodasOcorrencias() {
-        return this._obterTodos(ARMAZENS.OCORRENCIAS);
+
+    async obterTodasOcorrencias() {
+        const rows = await window.ipiEngine.buscar('SELECT * FROM ocorrencias ORDER BY data_hora DESC');
+        for (const row of rows) {
+            const envolvidos = await window.ipiEngine.buscar(
+                `SELECT e.cpf_pessoa AS cpf, e.envolvimento, p.nome
+                 FROM envolvidos e LEFT JOIN pessoas p ON e.cpf_pessoa = p.cpf
+                 WHERE e.ocorrencia_id = ?`,
+                [row.id]
+            );
+            row.pessoas = envolvidos;
+
+            const veiculos = await window.ipiEngine.buscar(
+                `SELECT v.placa, v.modelo, v.cor, v.situacao
+                 FROM veiculos_envolvidos ve LEFT JOIN veiculos v ON ve.placa_veiculo = v.placa
+                 WHERE ve.ocorrencia_id = ?`,
+                [row.id]
+            );
+            row.veiculos = veiculos;
+
+            row.sincronizado = !!row.sincronizado;
+        }
+        return rows;
     }
+
     async obterOcorrenciasPendentes() {
-        const todas = await this.obterTodasOcorrencias();
-        return todas.filter(o => !o.sincronizado);
+        const rows = await this.obterTodasOcorrencias();
+        return rows.filter(o => !o.sincronizado);
     }
-    marcarSincronizada(id) {
-        return this._obter(ARMAZENS.OCORRENCIAS, id).then(o => {
-            if (!o) return null;
-            o.sincronizado = true;
-            return this._salvar(ARMAZENS.OCORRENCIAS, o);
-        });
+
+    async marcarSincronizada(id) {
+        await window.ipiEngine.executar(
+            'UPDATE ocorrencias SET sincronizado = 1 WHERE id = ?',
+            [id]
+        );
     }
 
     // ─── VEÍCULOS ───
-    salvarVeiculo(veiculo) {
-        return this._salvar(ARMAZENS.VEICULOS, veiculo);
+
+    async salvarVeiculo(veiculo) {
+        await window.ipiEngine.salvar('veiculos', veiculo, 'placa');
     }
-    buscarVeiculo(placa) {
-        return this._obter(ARMAZENS.VEICULOS, placa.toUpperCase());
+
+    async buscarVeiculo(placa) {
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT * FROM veiculos WHERE placa = ?',
+            [placa.toUpperCase()]
+        );
+        return row || null;
     }
-    obterTodosVeiculos() {
-        return this._obterTodos(ARMAZENS.VEICULOS);
+
+    async obterTodosVeiculos() {
+        return await window.ipiEngine.buscar('SELECT * FROM veiculos');
     }
 
     // ─── PESSOAS ───
-    salvarPessoa(pessoa) {
-        return this._salvar(ARMAZENS.PESSOAS, pessoa);
+
+    async salvarPessoa(pessoa) {
+        await window.ipiEngine.salvar('pessoas', pessoa, 'cpf');
     }
-    buscarPessoaPorCPF(cpf) {
-        return this._obter(ARMAZENS.PESSOAS, cpf);
+
+    async buscarPessoaPorCPF(cpf) {
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT * FROM pessoas WHERE cpf = ?',
+            [cpf]
+        );
+        return row || null;
     }
+
     async buscarPessoaPorNome(nome) {
-        const todas = await this._obterTodos(ARMAZENS.PESSOAS);
-        const q = nome.toLowerCase();
-        return todas.filter(p => p.nome.toLowerCase().includes(q));
+        return await window.ipiEngine.buscar(
+            'SELECT * FROM pessoas WHERE LOWER(nome) LIKE ?',
+            [`%${nome.toLowerCase()}%`]
+        );
     }
-    obterTodasPessoas() {
-        return this._obterTodos(ARMAZENS.PESSOAS);
+
+    async obterTodasPessoas() {
+        return await window.ipiEngine.buscar('SELECT * FROM pessoas');
     }
 
     // ─── CONFIGURAÇÕES ───
-    definirConfiguracao(chave, valor) {
-        return this._salvar(ARMAZENS.CONFIGURACOES, { chave, valor });
+
+    async definirConfiguracao(chave, valor) {
+        const valorSerializado = typeof valor === 'object' && valor !== null
+            ? JSON.stringify(valor)
+            : valor;
+        await window.ipiEngine.salvar('configuracoes', { chave, valor: valorSerializado }, 'chave');
     }
+
     async obterConfiguracao(chave) {
-        const resultado = await this._obter(ARMAZENS.CONFIGURACOES, chave);
-        return resultado ? resultado.valor : null;
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT valor FROM configuracoes WHERE chave = ?',
+            [chave]
+        );
+        if (!row || row.valor === null) return null;
+        try {
+            return JSON.parse(row.valor);
+        } catch {
+            return row.valor;
+        }
     }
 
     // ─── ESTATÍSTICAS ───
+
     async obterEstatisticas() {
-        const [ocorrencias, veiculos, pessoas] = await Promise.all([
-            this.obterTodasOcorrencias(),
-            this.obterTodosVeiculos(),
-            this.obterTodasPessoas()
+        const [
+            { values: [totalOcorr] },
+            { values: [pendentes] },
+            { values: [totalVeic] },
+            { values: [totalPess] }
+        ] = await Promise.all([
+            window.ipiEngine.executar('SELECT COUNT(*) as c FROM ocorrencias'),
+            window.ipiEngine.executar('SELECT COUNT(*) as c FROM ocorrencias WHERE sincronizado = 0'),
+            window.ipiEngine.executar('SELECT COUNT(*) as c FROM veiculos'),
+            window.ipiEngine.executar('SELECT COUNT(*) as c FROM pessoas')
         ]);
+
         return {
-            total:    ocorrencias.length,
-            pendentes: ocorrencias.filter(o => !o.sincronizado).length,
-            sincronizadas: ocorrencias.filter(o => o.sincronizado).length,
-            veiculos: veiculos.length,
-            pessoas:  pessoas.length
+            total: totalOcorr?.c || 0,
+            pendentes: pendentes?.c || 0,
+            sincronizadas: (totalOcorr?.c || 0) - (pendentes?.c || 0),
+            veiculos: totalVeic?.c || 0,
+            pessoas: totalPess?.c || 0
         };
     }
 
     async limparTudo() {
         await Promise.all([
-            this._limpar(ARMAZENS.OCORRENCIAS),
-            this._limpar(ARMAZENS.VEICULOS),
-            this._limpar(ARMAZENS.PESSOAS)
+            window.ipiEngine.limpar('ocorrencias'),
+            window.ipiEngine.limpar('veiculos'),
+            window.ipiEngine.limpar('pessoas'),
+            window.ipiEngine.limpar('envolvidos'),
+            window.ipiEngine.limpar('veiculos_envolvidos')
         ]);
     }
 
     // ─── MISSÃO ───
+
     definirMissao(municipio) {
         return this.definirConfiguracao('missao_municipio', municipio);
     }
+
     obterMissao() {
         return this.obterConfiguracao('missao_municipio');
     }
 
     // ─── MAPA OFFLINE (PMTiles) ───
-    salvarMapaOffline(dados) {
-        return this._salvar(ARMAZENS.MAPA_OFFLINE, {
-            id: 'goias',
-            dados,
-            dataDownload: new Date().toISOString()
+
+    async salvarMapaOffline(dados) {
+        const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(new Blob([dados]));
         });
+
+        await window.ipiEngine.salvar('mapa_offline', {
+            id: 'goias',
+            dados: base64,
+            data_download: new Date().toISOString()
+        }, 'id');
     }
-    obterMapaOffline() {
-        return this._obter(ARMAZENS.MAPA_OFFLINE, 'goias');
+
+    async obterMapaOffline() {
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT * FROM mapa_offline WHERE id = ?',
+            ['goias']
+        );
+        if (!row) return null;
+        return {
+            ...row,
+            dados: row.dados ? Uint8Array.from(atob(row.dados), c => c.charCodeAt(0)) : null,
+            dataDownload: row.data_download
+        };
     }
+
     deletarMapaOffline() {
-        return this._deletar(ARMAZENS.MAPA_OFFLINE, 'goias');
+        return window.ipiEngine.deletar('mapa_offline', 'id', 'goias');
     }
+
     async temMapaOffline() {
-        const mapa = await this.obterMapaOffline();
-        return !!mapa;
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT id FROM mapa_offline WHERE id = ?',
+            ['goias']
+        );
+        return !!row;
     }
+
     async obterTamanhoMapaOffline() {
-        const mapa = await this.obterMapaOffline();
-        return mapa ? mapa.dados.byteLength : 0;
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT LENGTH(dados) as tamanho FROM mapa_offline WHERE id = ?',
+            ['goias']
+        );
+        return row ? row.tamanho || 0 : 0;
     }
+
+    // ─── CACHE DA NUVEM ───
 
     async atualizarCacheNuvem(municipio) {
         if (!window.supabaseClient) throw new Error('Cliente Supabase não inicializado.');
 
         try {
-            console.log('[DB] Iniciando atualização de cache da nuvem...');
-
             let queryV = window.supabaseClient.from('veiculos').select('*');
             let queryP = window.supabaseClient.from('pessoas').select('*');
             if (municipio) {
@@ -237,19 +275,14 @@ class IPIDatabase {
             if (respV.error) throw respV.error;
             if (respP.error) throw respP.error;
 
-            // 2. Limpar cache atual
             await Promise.all([
-                this._limpar(ARMAZENS.VEICULOS),
-                this._limpar(ARMAZENS.PESSOAS)
+                window.ipiEngine.limpar('veiculos'),
+                window.ipiEngine.limpar('pessoas')
             ]);
 
-            // 3. Salvar novos dados
-            const promises = [];
-            for (const v of respV.data) promises.push(this.salvarVeiculo(v));
-            for (const p of respP.data) promises.push(this.salvarPessoa(p));
-            
-            await Promise.all(promises);
-            
+            for (const v of respV.data) await this.salvarVeiculo(v);
+            for (const p of respP.data) await this.salvarPessoa(p);
+
             console.log(`[DB] Cache atualizado: ${respV.data.length} veículos, ${respP.data.length} pessoas.`);
             return { veiculos: respV.data.length, pessoas: respP.data.length };
         } catch (e) {
@@ -259,6 +292,4 @@ class IPIDatabase {
     }
 }
 
-// Singleton Global
 window.ipiDB = new IPIDatabase();
-

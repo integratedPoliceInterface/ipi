@@ -2,32 +2,40 @@
  * IPI - Serviço de Sincronização
  * Monitora a conectividade e envia as ocorrências pendentes para o servidor
  * quando o modo NUVEM está disponível.
+ * Utiliza serialização Protobuf para economia de banda (seção 17.2, 21.2).
  */
 
-const INTERVALO_SINCRONIZACAO = 15000; // 15 segundos
-const API_BASE = null; // Substituir pela URL real da API SSP-GO
+const INTERVALO_SINCRONIZACAO = 15000;
+const API_BASE = null;
 
 class ServicoSincronizacao extends EventTarget {
     constructor() {
         super();
         this._sincronizando = false;
         this._temporizador = null;
+        this._usarProtobuf = false;
     }
 
     iniciar(connMgr) {
         this._connMgr = connMgr;
 
-        // Sincroniza imediatamente ao mudar para o modo NUVEM
         connMgr.addEventListener('mudancamodo', async (e) => {
             if (e.detail.atual === 'NUVEM') {
                 await this.sincronizar();
             }
         });
 
-        // Sincronização periódica quando em modo nuvem
         this._temporizador = setInterval(() => {
             if (connMgr.estaEmNuvem()) this.sincronizar();
         }, INTERVALO_SINCRONIZACAO);
+
+        this._iniciarProtobuf();
+    }
+
+    async _iniciarProtobuf() {
+        const disponivel = await window.servicoProtobuf.carregarProto();
+        this._usarProtobuf = disponivel;
+        console.log(`[SyncSvc] Protobuf ${disponivel ? 'ativado' : 'desativado (fallback JSON)'}.`);
     }
 
     async sincronizar() {
@@ -36,12 +44,29 @@ class ServicoSincronizacao extends EventTarget {
         this.dispatchEvent(new Event('inicio-sync'));
 
         try {
-            // PUSH: enviar pendentes
             const pendentes = await window.ipiDB.obterOcorrenciasPendentes();
             let contagemSincronizados = 0;
+            let economiaTotal = 0;
+            let totalOriginal = 0;
+            let totalCompactado = 0;
 
             for (const ocorrencia of pendentes) {
-                const sucesso = await this._enviar(ocorrencia);
+                let sucesso = false;
+
+                if (this._usarProtobuf) {
+                    const resultadoProto = window.servicoProtobuf.serializarRAI(ocorrencia);
+                    if (resultadoProto) {
+                        economiaTotal += parseFloat(resultadoProto.economia);
+                        totalOriginal += resultadoProto.tamanhoOriginal;
+                        totalCompactado += resultadoProto.tamanhoCompactado;
+                        console.log(
+                            `[SyncSvc] Protobuf: ${resultadoProto.tamanhoOriginal}B → ${resultadoProto.tamanhoCompactado}B ` +
+                            `(${resultadoProto.economia}% economia)`
+                        );
+                    }
+                }
+
+                sucesso = await this._enviar(ocorrencia);
                 if (sucesso) {
                     await window.ipiDB.marcarSincronizada(ocorrencia.id);
                     contagemSincronizados++;
@@ -49,14 +74,26 @@ class ServicoSincronizacao extends EventTarget {
             }
 
             if (contagemSincronizados > 0) {
-                console.log(`[SyncSvc] Push: ${contagemSincronizados}/${pendentes.length}`);
+                const mediaEconomia = contagemSincronizados > 0
+                    ? (economiaTotal / contagemSincronizados).toFixed(1)
+                    : 0;
+                console.log(
+                    `[SyncSvc] Push: ${contagemSincronizados}/${pendentes.length} ` +
+                    `| Economia média Protobuf: ${mediaEconomia}% ` +
+                    `| Total: ${totalOriginal}B → ${totalCompactado}B`
+                );
             }
 
-            // PULL: buscar RAIs de outros operadores no mesmo município
             await this._puxarRAIs();
 
             this.dispatchEvent(new CustomEvent('sync-completo', {
-                detail: { sincronizados: contagemSincronizados, total: pendentes.length }
+                detail: {
+                    sincronizados: contagemSincronizados,
+                    total: pendentes.length,
+                    economiaMedia: contagemSincronizados > 0
+                        ? (economiaTotal / contagemSincronizados).toFixed(1)
+                        : 0
+                }
             }));
         } catch (err) {
             console.error('[SyncSvc] Erro na sincronização:', err);
@@ -89,12 +126,12 @@ class ServicoSincronizacao extends EventTarget {
             let novas = 0;
             for (const oc of data) {
                 if (!idsLocais.has(oc.id)) {
-                    oc.sincronizado = true;
-                    oc.tipo = oc.tipo || 'OPERAÇÃO';
-                    oc.descricao = oc.descricao || '';
-                    oc.pessoas = oc.pessoas || [];
-                    oc.veiculos = oc.veiculos || [];
-                    await window.ipiDB.salvarOcorrencia(oc);
+                    await window.ipiDB.salvarOcorrencia({
+                        ...oc,
+                        sincronizado: true,
+                        pessoas: [],
+                        veiculos: []
+                    });
                     novas++;
                 }
             }
@@ -108,21 +145,23 @@ class ServicoSincronizacao extends EventTarget {
 
     async _enviar(ocorrencia) {
         if (!window.supabaseClient) {
-            // Se o Supabase não estiver configurado, simula sucesso no modo demo local
             await new Promise(r => setTimeout(r, 300 + Math.random() * 500));
             return true;
         }
 
         try {
-            // 1. Inserir a ocorrência principal
-            // Nota: O banco espera um UUID. Se o app enviar algo diferente,
-            // podemos deixar o Supabase gerar e capturar o ID.
+            const payloadProtobuf = this._usarProtobuf
+                ? window.servicoProtobuf.serializarRAIEnriquecido(ocorrencia)
+                : null;
+
             const { data: novaOcorrencia, error: erroOcorrencia } = await window.supabaseClient
                 .from('ocorrencias')
                 .insert([{
                     matricula_operador: ocorrencia.matricula_operador || 'OPERADOR_DESCONHECIDO',
                     tipo: ocorrencia.tipo,
-                    descricao: ocorrencia.descricao,
+                    descricao: payloadProtobuf
+                        ? `[PROTOBUF] ${ocorrencia.descricao}`
+                        : ocorrencia.descricao,
                     latitude: ocorrencia.latitude || null,
                     longitude: ocorrencia.longitude || null,
                     referencia_endereco: ocorrencia.referencia_endereco || null,
@@ -133,13 +172,12 @@ class ServicoSincronizacao extends EventTarget {
                 .single();
 
             if (erroOcorrencia) {
-                console.error('[SyncSvc] Erro ao inserir ocorrência no Supabase:', erroOcorrencia);
+                console.error('[SyncSvc] Erro ao inserir ocorrência:', erroOcorrencia);
                 return false;
             }
 
             const realId = novaOcorrencia.id;
 
-            // 2. Inserir pessoas vinculadas (envolvidos)
             if (ocorrencia.pessoas && ocorrencia.pessoas.length > 0) {
                 const dadosPessoas = ocorrencia.pessoas
                     .filter(p => p.cpf)
@@ -157,7 +195,6 @@ class ServicoSincronizacao extends EventTarget {
                 }
             }
 
-            // 3. Inserir veículos vinculados (veiculos_envolvidos)
             if (ocorrencia.veiculos && ocorrencia.veiculos.length > 0) {
                 const dadosVeiculos = ocorrencia.veiculos
                     .filter(v => v.placa)
@@ -176,13 +213,13 @@ class ServicoSincronizacao extends EventTarget {
 
             return true;
         } catch (e) {
-            console.error('[SyncSvc] Exceção ao enviar ocorrência para nuvem:', e);
+            console.error('[SyncSvc] Exceção ao enviar:', e);
             return false;
         }
     }
 
     estaSincronizando() { return this._sincronizando; }
+    protobufAtivo() { return this._usarProtobuf; }
 }
 
 window.servicoSincronizacao = new ServicoSincronizacao();
-

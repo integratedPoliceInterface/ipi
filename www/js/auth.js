@@ -4,9 +4,9 @@ class ServicoAuth {
     }
 
     async verificarSessao() {
-        const dados = await window.ipiDB._obter('configuracoes', 'sessao');
-        if (dados && dados.valor && dados.valor.matricula) {
-            this._sessao = dados.valor;
+        const valor = await window.ipiDB.obterConfiguracao('sessao');
+        if (valor && valor.matricula) {
+            this._sessao = valor;
             return this._sessao;
         }
         return null;
@@ -43,7 +43,7 @@ class ServicoAuth {
 
     async logout() {
         this._sessao = null;
-        await window.ipiDB._deletar('configuracoes', 'sessao');
+        await window.ipiDB.definirConfiguracao('sessao', null);
     }
 
     obterOperador() {
