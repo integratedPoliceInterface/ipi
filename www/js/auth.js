@@ -33,6 +33,7 @@ class ServicoAuth {
                 loginAt: new Date().toISOString()
             };
 
+            localStorage.setItem('ipi_matricula', data.matricula);
             await window.ipiDB.definirConfiguracao('sessao', this._sessao);
             return this._sessao;
         } catch (e) {
@@ -43,6 +44,7 @@ class ServicoAuth {
 
     async logout() {
         this._sessao = null;
+        localStorage.removeItem('ipi_matricula');
         await window.ipiDB.definirConfiguracao('sessao', null);
     }
 

@@ -7,12 +7,21 @@
    INICIALIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 async function iniciarApp() {
-    const operador = await window.servicoAuth.verificarSessao();
-    const chaveCripto = operador
-        ? await gerarChaveCripto(operador.matricula)
+    var matriculaSalva = localStorage.getItem('ipi_matricula');
+    var chaveInicial = matriculaSalva
+        ? await gerarChaveCripto(matriculaSalva)
         : 'ipi_anonimo';
+    await window.ipiDB.abrir(chaveInicial);
 
-    await window.ipiDB.abrir(chaveCripto);
+    var operador = await window.servicoAuth.verificarSessao();
+
+    if (operador) {
+        var chaveEsperada = await gerarChaveCripto(operador.matricula);
+        if (chaveEsperada !== chaveInicial) {
+            await window.ipiEngine.rechavear(chaveEsperada);
+        }
+    }
+
     await window.servicoSMS.iniciar();
     await window.connMgr.iniciar();
     window.servicoSincronizacao.iniciar(window.connMgr);
