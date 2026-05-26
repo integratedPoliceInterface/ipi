@@ -12,15 +12,15 @@ class SMSService {
     async iniciar() {
         if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
             try {
-                const { SMS } = await import('@capacitor/sms');
-                this.plugin = SMS;
+                const { SmsManager } = await import('@byteowls/capacitor-sms');
+                this.plugin = SmsManager;
                 this.pluginDisponivel = true;
-                console.log('[SMS] Plugin Capacitor SMS disponível.');
+                console.log('[SMS] Plugin @byteowls/capacitor-sms disponível.');
             } catch (e) {
                 console.warn('[SMS] Plugin não disponível:', e);
             }
         } else {
-            console.log('[SMS] Modo Web - SMS será simulado via console.');
+            console.log('[SMS] Modo Web - fallback via link sms:.');
         }
     }
 

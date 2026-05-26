@@ -16,9 +16,6 @@
     "Geolocation": {
       "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
-    "SMS": {
-      "permissions": ["SEND_SMS"]
-    },
     "CapacitorSQLite": {
       "iosDatabaseLocation": "Library/Databases",
       "androidDatabaseLocation": "default"

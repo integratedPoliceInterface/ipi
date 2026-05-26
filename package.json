@@ -18,7 +18,7 @@
     "@capacitor/geolocation": "^5.0.7",
     "@capacitor/ios": "^5.7.8",
     "@capacitor/network": "^5.0.7",
-    "@capacitor/sms": "^5.0.8",
+    "@byteowls/capacitor-sms": "^5.0.0",
     "@capacitor-community/sqlite": "^5.7.2",
     "pmtiles": "^4.4.1",
     "protobufjs": "^7.4.0",
