@@ -7,7 +7,22 @@
    INICIALIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 async function iniciarApp() {
-    await window.ipiDB.abrir();
+    var matriculaSalva = localStorage.getItem('ipi_matricula');
+    var chaveInicial = matriculaSalva
+        ? await gerarChaveCripto(matriculaSalva)
+        : 'ipi_anonimo';
+    await window.ipiDB.abrir(chaveInicial);
+
+    var operador = await window.servicoAuth.verificarSessao();
+
+    if (operador) {
+        var chaveEsperada = await gerarChaveCripto(operador.matricula);
+        if (chaveEsperada !== chaveInicial) {
+            await window.ipiEngine.rechavear(chaveEsperada);
+        }
+    }
+
+    await window.servicoSMS.iniciar();
     await window.connMgr.iniciar();
     window.servicoSincronizacao.iniciar(window.connMgr);
 
@@ -16,7 +31,6 @@ async function iniciarApp() {
     vincularLogin();
     vincularEventosGlobais();
 
-    const operador = await window.servicoAuth.verificarSessao();
     if (operador) {
         await posLogin(operador);
     }
@@ -28,6 +42,15 @@ async function iniciarApp() {
     console.log('[App] IPI iniciado.');
 }
 
+async function gerarChaveCripto(matricula) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(matricula + ':ipi:2026');
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0')).join('')
+        .substring(0, 32);
+}
+
 async function posLogin(operador) {
     vincularTelaInicial();
     vincularTelaRAI();
@@ -35,9 +58,23 @@ async function posLogin(operador) {
     vincularTelaHistorico();
     vincularTelaConfiguracoes();
 
+    var elNome = document.getElementById('nome-operador');
+    if (elNome) elNome.textContent = operador.nome;
+
     await atualizarEstatisticas();
     navegarPara('inicio');
     exibirAviso(`Bem-vindo, ${operador.nome}!`, 'sucesso');
+}
+
+function alternarVisibilidadeSenha(inputId, btnId) {
+    var input = document.getElementById(inputId);
+    var btn = document.getElementById(btnId);
+    if (!input || !btn) return;
+    btn.addEventListener('click', function () {
+        var isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.textContent = isPassword ? '🙈' : '👁';
+    });
 }
 
 function vincularLogin() {
@@ -49,14 +86,72 @@ function vincularLogin() {
         if (e.key === 'Enter') document.getElementById('login-senha')?.focus();
     });
 
+    alternarVisibilidadeSenha('login-senha', 'btn-olho-senha');
+    alternarVisibilidadeSenha('reset-senha', 'btn-olho-reset');
+
+    document.getElementById('btn-esqueci-senha')?.addEventListener('click', function () {
+        document.getElementById('login-form-padrao').hidden = true;
+        document.getElementById('login-form-reset').hidden = false;
+        document.getElementById('login-erro').textContent = '';
+        document.getElementById('reset-erro').textContent = '';
+    });
+
+    document.getElementById('btn-voltar-login')?.addEventListener('click', function () {
+        document.getElementById('login-form-reset').hidden = true;
+        document.getElementById('login-form-padrao').hidden = false;
+        document.getElementById('reset-erro').textContent = '';
+    });
+
+    document.getElementById('btn-redefinir')?.addEventListener('click', executarRedefinirSenha);
+    document.getElementById('reset-confirmar')?.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter') executarRedefinirSenha();
+    });
+
     document.getElementById('btn-logout')?.addEventListener('click', async () => {
         await window.servicoAuth.logout();
+        var chaveAnonima = await gerarChaveCripto('anonimo');
+        await window.ipiEngine.rechavear(chaveAnonima);
         document.getElementById('login-matricula').value = '';
         document.getElementById('login-senha').value = '';
         document.getElementById('login-erro').textContent = '';
         exibirAviso('Sessão encerrada.', 'info');
         navegarPara('login');
     });
+}
+
+async function executarRedefinirSenha() {
+    var matricula = document.getElementById('reset-matricula')?.value?.trim();
+    var senha = document.getElementById('reset-senha')?.value;
+    var confirmar = document.getElementById('reset-confirmar')?.value;
+    var erroEl = document.getElementById('reset-erro');
+
+    if (!matricula || !senha || !confirmar) {
+        erroEl.textContent = 'Preencha todos os campos.';
+        return;
+    }
+    if (senha !== confirmar) {
+        erroEl.textContent = 'As senhas não conferem.';
+        return;
+    }
+    if (senha.length < 4) {
+        erroEl.textContent = 'A senha deve ter no mínimo 4 caracteres.';
+        return;
+    }
+
+    erroEl.textContent = '';
+    try {
+        await window.servicoAuth.redefinirSenha(matricula, senha);
+        exibirAviso('Senha redefinida com sucesso!', 'sucesso');
+        document.getElementById('login-form-reset').hidden = true;
+        document.getElementById('login-form-padrao').hidden = false;
+        document.getElementById('login-matricula').value = matricula;
+        document.getElementById('reset-matricula').value = '';
+        document.getElementById('reset-senha').value = '';
+        document.getElementById('reset-confirmar').value = '';
+        document.getElementById('login-senha').focus();
+    } catch (e) {
+        erroEl.textContent = e.message || 'Erro ao redefinir senha.';
+    }
 }
 
 async function executarLogin() {
@@ -72,6 +167,8 @@ async function executarLogin() {
 
     const operador = await window.servicoAuth.login(matricula, senha);
     if (operador) {
+        const novaChave = await gerarChaveCripto(operador.matricula);
+        await window.ipiEngine.rechavear(novaChave);
         await posLogin(operador);
     } else {
         erroEl.textContent = 'Matrícula ou senha inválidos.';
@@ -216,6 +313,17 @@ function navegarPara(nomeTela) {
     }
     const btn = botoesNav[nomeTela];
     if (btn) btn.classList.add('ativo');
+
+    if (nomeTela === 'login') {
+        var fp = document.getElementById('login-form-padrao');
+        var fr = document.getElementById('login-form-reset');
+        if (fp) fp.hidden = false;
+        if (fr) fr.hidden = true;
+        var e1 = document.getElementById('login-erro');
+        var e2 = document.getElementById('reset-erro');
+        if (e1) e1.textContent = '';
+        if (e2) e2.textContent = '';
+    }
 
     // Funções específicas por tela
     if (nomeTela === 'historico') renderizarHistorico();
@@ -615,16 +723,33 @@ function vincularTelaConfiguracoes() {
     // Botões de teste de modo
     document.getElementById('teste-nuvem')?.addEventListener('click', () => {
         window.connMgr.forcarModo('NUVEM');
-        exibirAviso('Simulando modo NUVEM.', 'sucesso');
+        exibirAviso('MODO TESTE: Simulando NUVEM.', 'sucesso');
     });
     document.getElementById('teste-contingencia')?.addEventListener('click', () => {
         window.connMgr.forcarModo('SMS');
-        exibirAviso('Simulando modo CONTINGÊNCIA (SMS).', 'aviso');
+        exibirAviso('MODO TESTE: Simulando CONTINGÊNCIA (SMS).', 'aviso');
     });
     document.getElementById('teste-apagao')?.addEventListener('click', () => {
         window.connMgr.forcarModo('APAGAO');
-        exibirAviso('Simulando modo BLACKOUT.', 'erro');
+        exibirAviso('MODO TESTE: Simulando BLACKOUT.', 'erro');
     });
+
+    // Botão para retornar ao modo automático (libera forçamento manual)
+    const btnAuto = document.getElementById('teste-automatico');
+    if (!btnAuto) {
+        const container = document.querySelector('.switch-modo-teste');
+        if (container) {
+            const btn = document.createElement('button');
+            btn.className = 'botao-teste-modo auto-btn';
+            btn.id = 'teste-automatico';
+            btn.textContent = '↻ Voltar ao Automático';
+            container.appendChild(btn);
+            btn.addEventListener('click', () => {
+                window.connMgr.liberarForca();
+                exibirAviso('Modo automático restaurado.', 'info');
+            });
+        }
+    }
 }
 
 async function atualizarEstatisticasCache() {

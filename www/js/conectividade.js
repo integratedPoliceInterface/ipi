@@ -1,21 +1,24 @@
 /**
  * IPI - Gerenciador de Conectividade
- * Gerencia os três modos operacionais:
- *   NUVEM → Acesso total à API do servidor (4G/WiFi)
- *   SMS   → Codificação/decodificação SMS para dados críticos (FALLBACK)
+ * Gerencia os três modos operacionais (RN-007 - Alternância Automática):
+ *   NUVEM  → Acesso total à API do servidor (4G/WiFi)
+ *   SMS    → Fallback via mensagens de texto codificadas (RF-004)
  *   APAGAO → Totalmente offline, apenas cache local (BLACKOUT)
+ *
+ * A transição entre modos é AUTOMÁTICA (RN-007).
+ * O modo forçado manual é apenas para TESTE e exibe indicador visual.
  */
 
-const MODOS = {
+var MODOS = {
     NUVEM: 'NUVEM',
     SMS: 'SMS',
     APAGAO: 'APAGAO'
 };
 
-const CLOUD_CONEXAO_URL = null;          // endpoint SSP-GO
-const INTERVALO_VERIFICACAO = 20000;    // 20 segundos
-const LIMITE_SMS = 3;                   // Falhas consecutivas antes de → SMS
-const LIMITE_APAGAO = 6;                // Falhas consecutivas antes de → APAGAO
+var CLOUD_CONEXAO_URL = null;
+var INTERVALO_VERIFICACAO = 20000;
+var LIMITE_SMS = 3;
+var LIMITE_APAGAO = 6;
 
 class GerenciadorConectividade extends EventTarget {
     constructor() {
@@ -23,43 +26,48 @@ class GerenciadorConectividade extends EventTarget {
         this.modo = MODOS.NUVEM;
         this._contagemFalhas = 0;
         this._temporizadorHeartbeat = null;
-        this._forcado = null; // Teste manual
+        this._forcado = null;
+        this._modoAnterior = null;
     }
 
     async iniciar() {
         await this._verificar();
         this._temporizadorHeartbeat = setInterval(() => this._verificar(), INTERVALO_VERIFICACAO);
-        window.addEventListener('online', () => this._verificar());
-        window.addEventListener('offline', () => this._aplicarApagao());
-        console.log('[GerenciadorConectividade] Inicializado. Modo:', this.modo);
+        window.addEventListener('online', () => {
+            console.log('[ConnMgr] Evento online detectado. Verificando...');
+            this._verificar();
+        });
+        window.addEventListener('offline', () => {
+            console.log('[ConnMgr] Evento offline detectado. → APAGAO');
+            this._aplicarApagao();
+        });
+        console.log('[ConnMgr] Inicializado. Modo:', this.modo);
     }
 
     async _verificar() {
-        if (this._forcado) return; // desabilita auto-switch no modo de teste
+        if (this._forcado) return;
+
+        const estavaOffline = !navigator.onLine;
 
         if (!navigator.onLine) {
             this._contagemFalhas++;
         } else {
-            // Tenta um ping real se a URL estiver fornecida, caso contrário assume nuvem
             if (CLOUD_CONEXAO_URL) {
                 try {
                     const ctrl = new AbortController();
                     const tid = setTimeout(() => ctrl.abort(), 3000);
                     const res = await fetch(CLOUD_CONEXAO_URL, { signal: ctrl.signal, method: 'HEAD' });
                     clearTimeout(tid);
-                    if (res.ok) {
-                        this._contagemFalhas = 0;
-                    } else {
-                        this._contagemFalhas++;
-                    }
+                    this._contagemFalhas = res.ok ? 0 : this._contagemFalhas + 1;
                 } catch {
                     this._contagemFalhas++;
                 }
             } else {
-                // No ping URL → trata browser.onLine como verdade
-                this._contagemFalhas = navigator.onLine ? 0 : this._contagemFalhas + 1;
+                this._contagemFalhas = 0;
             }
         }
+
+        const modoAnterior = this.modo;
 
         if (this._contagemFalhas === 0) {
             this._aplicarNuvem();
@@ -68,14 +76,23 @@ class GerenciadorConectividade extends EventTarget {
         } else {
             this._aplicarApagao();
         }
+
+        if (estavaOffline && this.modo === MODOS.NUVEM) {
+            console.log('[ConnMgr] Recuperação de conectividade detectada.');
+            this.dispatchEvent(new CustomEvent('recuperado', {
+                detail: { modoAnterior, modoAtual: this.modo }
+            }));
+        }
     }
 
     _aplicarNuvem() {
         this._definirModo(MODOS.NUVEM);
     }
+
     _aplicarSMS() {
         this._definirModo(MODOS.SMS);
     }
+
     _aplicarApagao() {
         this._definirModo(MODOS.APAGAO);
     }
@@ -84,23 +101,30 @@ class GerenciadorConectividade extends EventTarget {
         if (this.modo === novoModo) return;
         const anterior = this.modo;
         this.modo = novoModo;
-        console.log(`[ConnMgr] Modo: ${anterior} → ${novoModo}`);
+        console.log(`[ConnMgr] Modo automático: ${anterior} → ${novoModo}`);
         this.dispatchEvent(new CustomEvent('mudancamodo', { detail: { anterior, atual: novoModo } }));
     }
 
-    // Força o modo para teste
     forcarModo(modo) {
         this._forcado = modo;
         this._definirModo(modo);
+        console.log(`[ConnMgr] MODO FORÇADO (TESTE): ${modo}`);
     }
+
     liberarForca() {
-        this._forcado = null;
+        if (this._forcado) {
+            console.log(`[ConnMgr] Liberando modo forçado. Retomando automático...`);
+            this._forcado = null;
+            this._contagemFalhas = 0;
+            this._verificar();
+        }
     }
 
     obterModo() { return this._forcado || this.modo; }
     estaEmNuvem() { return this.obterModo() === MODOS.NUVEM; }
     estaEmSMS() { return this.obterModo() === MODOS.SMS; }
     estaEmApagao() { return this.obterModo() === MODOS.APAGAO; }
+    estaEmModoTeste() { return this._forcado !== null; }
 
     /**
      * Codifica payload para string segura para SMS (modo SMS)
@@ -124,4 +148,3 @@ class GerenciadorConectividade extends EventTarget {
 }
 
 window.connMgr = new GerenciadorConectividade();
-

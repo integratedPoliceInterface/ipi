@@ -15,6 +15,10 @@
   "plugins": {
     "Geolocation": {
       "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+    },
+    "CapacitorSQLite": {
+      "iosDatabaseLocation": "Library/Databases",
+      "androidDatabaseLocation": "default"
     }
   }
 }

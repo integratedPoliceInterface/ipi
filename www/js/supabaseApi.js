@@ -8,6 +8,9 @@ const _headers = {
     'Prefer': 'return=representation'
 };
 
+// ─── APENAS USA COMO FALLBACK SE O SDK NÃO ESTIVER DISPONÍVEL ───
+if (!window.supabaseClient) {
+
 class SupabaseQuery {
     constructor(table) {
         this.table = table;
@@ -25,8 +28,19 @@ class SupabaseQuery {
         return this;
     }
 
+    neq(col, val) {
+        this.params.set(col, `neq.${val}`);
+        return this;
+    }
+
     ilike(col, pattern) {
         this.params.set(col, `ilike.${encodeURIComponent(pattern)}`);
+        return this;
+    }
+
+    order(col, opts = {}) {
+        const dir = opts.ascending !== false ? 'asc' : 'desc';
+        this.params.set('order', `${col}.${dir}`);
         return this;
     }
 
@@ -34,6 +48,10 @@ class SupabaseQuery {
         this._single = true;
         this.params.set('limit', '1');
         return this;
+    }
+
+    maybeSingle() {
+        return this.single();
     }
 
     async then(resolve, reject) {
@@ -99,4 +117,6 @@ window.supabaseClient = {
     }
 };
 
-console.log('[SupabaseAPI] Cliente REST inicializado');
+console.log('[SupabaseAPI] Cliente REST inicializado (fallback)');
+
+}

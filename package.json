@@ -18,8 +18,12 @@
     "@capacitor/geolocation": "^5.0.7",
     "@capacitor/ios": "^5.7.8",
     "@capacitor/network": "^5.0.7",
+    "@byteowls/capacitor-sms": "^5.0.0",
+    "@capacitor-community/sqlite": "^5.7.2",
     "pmtiles": "^4.4.1",
-    "protomaps-leaflet": "^5.1.0"
+    "protobufjs": "^7.4.0",
+    "protomaps-leaflet": "^5.1.0",
+    "sql.js": "^1.10.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.7.8",

@@ -32,7 +32,7 @@ async function obterFonteMapa() {
     if (offline && offline.dados && offline.dados.byteLength > 0) {
         const blob = new Blob([offline.dados]);
         fonteOfflineURL = URL.createObjectURL(blob);
-        console.log('[Mapa] Usando PMTiles do IndexedDB');
+        console.log('[Mapa] Usando PMTiles do SQLite local');
         return fonteOfflineURL;
     }
 

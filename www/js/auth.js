@@ -4,9 +4,9 @@ class ServicoAuth {
     }
 
     async verificarSessao() {
-        const dados = await window.ipiDB._obter('configuracoes', 'sessao');
-        if (dados && dados.valor && dados.valor.matricula) {
-            this._sessao = dados.valor;
+        const valor = await window.ipiDB.obterConfiguracao('sessao');
+        if (valor && valor.matricula) {
+            this._sessao = valor;
             return this._sessao;
         }
         return null;
@@ -33,6 +33,7 @@ class ServicoAuth {
                 loginAt: new Date().toISOString()
             };
 
+            localStorage.setItem('ipi_matricula', data.matricula);
             await window.ipiDB.definirConfiguracao('sessao', this._sessao);
             return this._sessao;
         } catch (e) {
@@ -41,9 +42,26 @@ class ServicoAuth {
         }
     }
 
+    async redefinirSenha(matricula, novaSenha) {
+        if (!matricula || !novaSenha || novaSenha.length < 4) {
+            throw new Error('Senha deve ter no mínimo 4 caracteres.');
+        }
+        var senha_hash = await window.gerarHashSenha(novaSenha);
+        var { data, error } = await window.supabaseClient
+            .from('policiais')
+            .update({ senha_hash })
+            .eq('matricula', matricula)
+            .select()
+            .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('Matrícula não encontrada.');
+        return data;
+    }
+
     async logout() {
         this._sessao = null;
-        await window.ipiDB._deletar('configuracoes', 'sessao');
+        localStorage.removeItem('ipi_matricula');
+        await window.ipiDB.definirConfiguracao('sessao', null);
     }
 
     obterOperador() {

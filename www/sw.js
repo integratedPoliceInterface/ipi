@@ -1,11 +1,15 @@
-const CACHE_ESTATICO = 'ipi-appa-v2';
-const CACHE_MAPAS = 'ipi-mapas-v1';
-let cacheandoMapa = false;
-const URLS_ESTATICOS = [
+var CACHE_ESTATICO = 'ipi-appa-v3';
+var CACHE_MAPAS = 'ipi-mapas-v1';
+var cacheandoMapa = false;
+var URLS_ESTATICOS = [
   './',
   './index.html',
   './css/styles.css',
+  './js/db-engine.js',
+  './js/db-schema.js',
   './js/db.js',
+  './js/protobuf.js',
+  './js/sms-service.js',
   './js/conectividade.js',
   './js/servicoBusca.js',
   './js/servicoSincronizacao.js',
@@ -31,7 +35,19 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys().then(function(nomes) {
+      return Promise.all(
+        nomes.filter(function(n) {
+          return n !== CACHE_ESTATICO && n !== CACHE_MAPAS;
+        }).map(function(n) {
+          return caches.delete(n);
+        })
+      );
+    }).then(function() {
+      return clients.claim();
+    })
+  );
 });
 
 function servirRange(resposta, rangeHeader) {
