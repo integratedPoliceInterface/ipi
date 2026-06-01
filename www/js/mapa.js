@@ -26,17 +26,40 @@ function normalizar(str) {
 }
 
 async function obterFonteMapa() {
-    if (fonteOfflineURL) return fonteOfflineURL;
+    if (fonteOfflineURL && await _validarPMTiles(fonteOfflineURL)) return fonteOfflineURL;
+    fonteOfflineURL = null;
 
     const offline = await window.ipiDB.obterMapaOffline();
     if (offline && offline.dados && offline.dados.byteLength > 0) {
         const blob = new Blob([offline.dados]);
-        fonteOfflineURL = URL.createObjectURL(blob);
-        console.log('[Mapa] Usando PMTiles do SQLite local');
-        return fonteOfflineURL;
+        const url = URL.createObjectURL(blob);
+        if (await _validarPMTiles(url)) {
+            fonteOfflineURL = url;
+            console.log('[Mapa] Usando PMTiles do SQLite local');
+            return fonteOfflineURL;
+        }
+        URL.revokeObjectURL(url);
     }
 
-    return './maps/goias.pmtiles';
+    const fallback = './maps/goias.pmtiles';
+    if (await _validarPMTiles(fallback)) return fallback;
+
+    return null;
+}
+
+async function _validarPMTiles(url) {
+    try {
+        const resp = await fetch(url, { method: 'HEAD' });
+        if (!resp.ok) return false;
+        if (resp.headers.get('content-type')?.includes('html')) return false;
+        const check = await fetch(url, { headers: { Range: 'bytes=0-1' } });
+        if (!check.ok) return false;
+        const buf = await check.arrayBuffer();
+        const view = new DataView(buf);
+        return view.getUint16(0, true) === 0x4d50;
+    } catch {
+        return false;
+    }
 }
 
 async function adicionarCamadaMapa() {
@@ -48,8 +71,18 @@ async function adicionarCamadaMapa() {
     if (modo === 'APAGAO' || !navigator.onLine) {
         const url = await obterFonteMapa();
         if (url && typeof window.pmtiles?.PMTiles !== 'undefined') {
-            const fonte = new window.pmtiles.PMTiles(url);
-            camadaVetor = protomapsL.leafletLayer({ url: fonte, flavor: 'dark' }).addTo(map);
+            try {
+                const fonte = new window.pmtiles.PMTiles(url);
+                camadaVetor = protomapsL.leafletLayer({ url: fonte, flavor: 'dark' }).addTo(map);
+                return;
+            } catch (err) {
+                console.error('[Mapa] Erro ao carregar PMTiles:', err);
+            }
+        }
+        if (navigator.onLine) {
+            camadaRaster = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
         }
         return;
     }
