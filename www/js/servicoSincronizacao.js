@@ -154,9 +154,12 @@ class ServicoSincronizacao extends EventTarget {
                 ? window.servicoProtobuf.serializarRAIEnriquecido(ocorrencia)
                 : null;
 
+            // Fase 01 6º período: envia o id local (RAI-{ts}) para manter a mesma PK
+            // local/nuvem e permitir marcarSincronizada(id) sem divergência.
             const { data: novaOcorrencia, error: erroOcorrencia } = await window.supabaseClient
                 .from('ocorrencias')
-                .insert([{
+                .upsert([{
+                    id: ocorrencia.id,
                     matricula_operador: ocorrencia.matricula_operador || 'OPERADOR_DESCONHECIDO',
                     tipo: ocorrencia.tipo,
                     descricao: payloadProtobuf
@@ -166,8 +169,11 @@ class ServicoSincronizacao extends EventTarget {
                     longitude: ocorrencia.longitude || null,
                     referencia_endereco: ocorrencia.referencia_endereco || null,
                     data_hora: ocorrencia.data_hora || new Date().toISOString(),
-                    municipio: ocorrencia.municipio || null
-                }])
+                    sincronizado: 1,
+                    modo: ocorrencia.modo || 'NUVEM',
+                    municipio: ocorrencia.municipio || null,
+                    observacoes: ocorrencia.observacoes || null
+                }], { onConflict: 'id' })
                 .select()
                 .single();
 
@@ -176,7 +182,7 @@ class ServicoSincronizacao extends EventTarget {
                 return false;
             }
 
-            const realId = novaOcorrencia.id;
+            const realId = (novaOcorrencia && novaOcorrencia.id) || ocorrencia.id;
 
             if (ocorrencia.pessoas && ocorrencia.pessoas.length > 0) {
                 const dadosPessoas = ocorrencia.pessoas

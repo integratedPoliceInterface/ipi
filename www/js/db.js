@@ -4,6 +4,22 @@
  * Em conformidade com o RNF-001 (Segurança e Sigilo dos Dados Locais).
  */
 
+function _normMunicipio(s) {
+    return (s || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function _canonMunicipio(input) {
+    if (!input) return null;
+    const norm = _normMunicipio(input);
+    if (typeof GOIAS_MUNICIPIOS !== 'undefined') {
+        for (const [, , nome] of GOIAS_MUNICIPIOS) {
+            if (_normMunicipio(nome) === norm) return nome; // retorna nome canônico com acento correto
+        }
+    }
+    // fallback: capitaliza
+    return input.trim();
+}
+
 class IPIDatabase {
     async abrir(senhaMestre) {
         await window.ipiEngine.abrir(senhaMestre);
@@ -21,9 +37,21 @@ class IPIDatabase {
     // ─── OCORRÊNCIAS ───
 
     async salvarOcorrencia(ocorrencia) {
+        // RN-001 (Fase 01 6º período): validação no backend, não só na UI (app.js:salvarRAI)
+        if (!ocorrencia.tipo || !String(ocorrencia.tipo).trim()) {
+            throw new Error('RN-001: Tipo de ocorrência é obrigatório.');
+        }
+        if (!ocorrencia.descricao || String(ocorrencia.descricao).trim().length < 10) {
+            throw new Error('RN-001: Descrição deve ter no mínimo 10 caracteres.');
+        }
+        // RN-002: matrícula do operador vinculada automaticamente
+        const matricula = (ocorrencia.matricula_operador || '').toString().trim()
+            || (window.servicoAuth && window.servicoAuth.obterOperador
+                ? window.servicoAuth.obterOperador().matricula : '')
+            || 'OPERADOR_DESCONHECIDO';
         const dados = {
-            id: ocorrencia.id,
-            matricula_operador: ocorrencia.matricula_operador || 'OPERADOR_DESCONHECIDO',
+            id: ocorrencia.id || `RAI-${Date.now()}`,
+            matricula_operador: matricula,
             tipo: ocorrencia.tipo,
             descricao: ocorrencia.descricao,
             latitude: ocorrencia.latitude || null,
@@ -32,9 +60,18 @@ class IPIDatabase {
             data_hora: ocorrencia.data_hora || new Date().toISOString(),
             sincronizado: ocorrencia.sincronizado ? 1 : 0,
             modo: ocorrencia.modo || 'NUVEM',
-            municipio: ocorrencia.municipio || null,
+            municipio: ocorrencia.municipio ? _canonMunicipio(ocorrencia.municipio) : null,
             observacoes: ocorrencia.observacoes || ''
         };
+
+        // RN-006: imutabilidade local — não sobrescrever ocorrência já sincronizada
+        if (dados.id) {
+            const existente = await window.ipiEngine.buscarUm('SELECT sincronizado FROM ocorrencias WHERE id = ?', [dados.id]);
+            if (existente && existente.sincronizado === 1) {
+                console.warn('[DB] RN-006: Ocorrência já sincronizada, edição bloqueada:', dados.id);
+                throw new Error('RN-006: Ocorrência já sincronizada não pode ser editada (integridade jurídica).');
+            }
+        }
 
         await window.ipiEngine.salvar('ocorrencias', dados, 'id');
 
@@ -44,7 +81,7 @@ class IPIDatabase {
                     await window.ipiEngine.executar(
                         `INSERT OR IGNORE INTO envolvidos (ocorrencia_id, cpf_pessoa, envolvimento)
                          VALUES (?, ?, ?)`,
-                        [ocorrencia.id, p.cpf || '', p.envolvimento || 'Suspeito']
+                        [dados.id, p.cpf || '', p.envolvimento || 'Suspeito']
                     );
                 }
             }
@@ -56,11 +93,12 @@ class IPIDatabase {
                     await window.ipiEngine.executar(
                         `INSERT OR IGNORE INTO veiculos_envolvidos (ocorrencia_id, placa_veiculo)
                          VALUES (?, ?)`,
-                        [ocorrencia.id, v.placa.toUpperCase()]
+                        [dados.id, v.placa.toUpperCase()]
                     );
                 }
             }
         }
+        if (window.ipiEngine.tipo === 'web') await window.ipiEngine._salvarWeb();
     }
 
     async obterTodasOcorrencias() {
@@ -97,6 +135,7 @@ class IPIDatabase {
             'UPDATE ocorrencias SET sincronizado = 1 WHERE id = ?',
             [id]
         );
+        if (window.ipiEngine.tipo === 'web') await window.ipiEngine._salvarWeb();
     }
 
     // ─── VEÍCULOS ───
@@ -132,14 +171,33 @@ class IPIDatabase {
     }
 
     async buscarPessoaPorNome(nome) {
-        return await window.ipiEngine.buscar(
-            'SELECT * FROM pessoas WHERE LOWER(nome) LIKE ?',
-            [`%${nome.toLowerCase()}%`]
-        );
+        // Busca normalizada: SQLite LIKE não lida com acentos, então filtra em JS quando necessário
+        const norm = _normMunicipio(nome);
+        const rows = await window.ipiEngine.buscar('SELECT * FROM pessoas');
+        if (!norm) return rows;
+        return rows.filter(r => _normMunicipio(r.nome).includes(norm) || r.nome.toLowerCase().includes(nome.toLowerCase()));
     }
 
     async obterTodasPessoas() {
         return await window.ipiEngine.buscar('SELECT * FROM pessoas');
+    }
+
+    // ─── POLICIAIS (cache offline) ───
+
+    async salvarPolicial(policial) {
+        await window.ipiEngine.salvar('policiais', policial, 'matricula');
+    }
+
+    async buscarPolicial(matricula) {
+        const row = await window.ipiEngine.buscarUm(
+            'SELECT * FROM policiais WHERE matricula = ?',
+            [matricula]
+        );
+        return row || null;
+    }
+
+    async obterTodosPoliciais() {
+        return await window.ipiEngine.buscar('SELECT * FROM policiais');
     }
 
     // ─── CONFIGURAÇÕES ───
@@ -189,6 +247,10 @@ class IPIDatabase {
     }
 
     async limparTudo() {
+        // RN-006: não apagar ocorrências sincronizadas sem confirmação explícita
+        const total = await window.ipiEngine.buscar('SELECT sincronizado FROM ocorrencias');
+        const temSinc = total.some(r => r.sincronizado === 1);
+        if (temSinc) console.warn('[DB] RN-006: Limpando ocorrências sincronizadas — ação auditável.');
         await Promise.all([
             window.ipiEngine.limpar('ocorrencias'),
             window.ipiEngine.limpar('veiculos'),
@@ -198,25 +260,55 @@ class IPIDatabase {
         ]);
     }
 
+    async registrarAuditoriaConsulta(tipo, parametro, modo, encontrado, municipio) {
+        const operador = window.servicoAuth ? window.servicoAuth.obterOperador() : null;
+        const matricula = operador ? operador.matricula : (localStorage.getItem('ipi_matricula') || 'DESCONHECIDO');
+        const registro = { matricula_operador: matricula, tipo_consulta: tipo, parametro, modo: modo || 'DESCONHECIDO', resultado_encontrado: encontrado, municipio: municipio || null };
+        // Tenta Supabase, fallback local (configuracoes como log)
+        try {
+            if (window.supabaseClient && navigator.onLine) {
+                await window.supabaseClient.from('auditoria_consultas').insert([registro]);
+            }
+        } catch (e) { console.warn('[DB] Falha auditoria nuvem:', e.message); }
+        try {
+            const logs = await this.obterConfiguracao('auditoria_logs') || [];
+            logs.push({ ...registro, timestamp: new Date().toISOString() });
+            if (logs.length > 500) logs.splice(0, logs.length - 500);
+            await this.definirConfiguracao('auditoria_logs', logs);
+        } catch {}
+    }
+
     // ─── MISSÃO ───
 
     definirMissao(municipio) {
-        return this.definirConfiguracao('missao_municipio', municipio);
+        const canon = _canonMunicipio(municipio);
+        return this.definirConfiguracao('missao_municipio', canon);
     }
 
     obterMissao() {
         return this.obterConfiguracao('missao_municipio');
     }
 
-    // ─── MAPA OFFLINE (PMTiles) ───
+    // ─── MAPA OFFLINE (PMTiles) - IndexedDB primário, SQLite como fallback legado ───
 
     async salvarMapaOffline(dados) {
+        const buf = dados instanceof Uint8Array ? dados : new Uint8Array(dados);
+        // Tenta IndexedDB primeiro (evita estouro de localStorage 5MB)
+        if (window.mapaStorage && typeof window.mapaStorage.salvarMapaIDB === 'function') {
+            try {
+                await window.mapaStorage.salvarMapaIDB(buf);
+                // Remove legado SQLite se existir para liberar espaço do localStorage
+                try { await window.ipiEngine.deletar('mapa_offline', 'id', 'goias'); } catch {}
+                console.log('[DB] Mapa salvo em IndexedDB (' + buf.byteLength + ' bytes)');
+                return;
+            } catch (e) { console.warn('[DB] Falha IndexedDB, fallback SQLite:', e); }
+        }
+        // Fallback legado: SQLite base64 (compatibilidade)
         const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.readAsDataURL(new Blob([dados]));
+            reader.readAsDataURL(new Blob([buf]));
         });
-
         await window.ipiEngine.salvar('mapa_offline', {
             id: 'goias',
             dados: base64,
@@ -225,6 +317,16 @@ class IPIDatabase {
     }
 
     async obterMapaOffline() {
+        // Tenta IndexedDB primeiro
+        if (window.mapaStorage && typeof window.mapaStorage.obterMapaIDB === 'function') {
+            try {
+                const idb = await window.mapaStorage.obterMapaIDB();
+                if (idb && idb.dados && idb.dados.byteLength > 0) {
+                    return { id: 'goias', dados: idb.dados, data_download: idb.dataDownload, dataDownload: idb.dataDownload, origem: 'IDB' };
+                }
+            } catch (e) { console.warn('[DB] Erro IDB obterMapa:', e); }
+        }
+        // Fallback SQLite
         const row = await window.ipiEngine.buscarUm(
             'SELECT * FROM mapa_offline WHERE id = ?',
             ['goias']
@@ -233,15 +335,22 @@ class IPIDatabase {
         return {
             ...row,
             dados: row.dados ? Uint8Array.from(atob(row.dados), c => c.charCodeAt(0)) : null,
-            dataDownload: row.data_download
+            dataDownload: row.data_download,
+            origem: 'SQLITE'
         };
     }
 
-    deletarMapaOffline() {
+    async deletarMapaOffline() {
+        if (window.mapaStorage && typeof window.mapaStorage.deletarMapaIDB === 'function') {
+            try { await window.mapaStorage.deletarMapaIDB(); } catch (e) { console.warn('[DB] Erro ao deletar IDB:', e); }
+        }
         return window.ipiEngine.deletar('mapa_offline', 'id', 'goias');
     }
 
     async temMapaOffline() {
+        if (window.mapaStorage && typeof window.mapaStorage.temMapaIDB === 'function') {
+            try { if (await window.mapaStorage.temMapaIDB()) return true; } catch {}
+        }
         const row = await window.ipiEngine.buscarUm(
             'SELECT id FROM mapa_offline WHERE id = ?',
             ['goias']
@@ -250,6 +359,12 @@ class IPIDatabase {
     }
 
     async obterTamanhoMapaOffline() {
+        if (window.mapaStorage && typeof window.mapaStorage.obterTamanhoMapaIDB === 'function') {
+            try {
+                const t = await window.mapaStorage.obterTamanhoMapaIDB();
+                if (t > 0) return t;
+            } catch {}
+        }
         const row = await window.ipiEngine.buscarUm(
             'SELECT LENGTH(dados) as tamanho FROM mapa_offline WHERE id = ?',
             ['goias']
@@ -263,11 +378,12 @@ class IPIDatabase {
         if (!window.supabaseClient) throw new Error('Cliente Supabase não inicializado.');
 
         try {
+            const munCanon = municipio ? _canonMunicipio(municipio) : null;
             let queryV = window.supabaseClient.from('veiculos').select('*').neq('situacao', 'REGULAR');
             let queryP = window.supabaseClient.from('pessoas').select('*').neq('situacao', 'REGULAR');
-            if (municipio) {
-                queryV = queryV.eq('municipio', municipio);
-                queryP = queryP.eq('municipio', municipio);
+            if (munCanon) {
+                queryV = queryV.eq('municipio', munCanon);
+                queryP = queryP.eq('municipio', munCanon);
             }
 
             const [respV, respP] = await Promise.all([queryV, queryP]);
