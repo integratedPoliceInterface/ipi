@@ -314,6 +314,9 @@ function navegarPara(nomeTela) {
     const btn = botoesNav[nomeTela];
     if (btn) btn.classList.add('ativo');
 
+    // Fallback para :has (Safari antigo) - controla exibição da barra/nav no login
+    document.body.classList.toggle('modo-login', nomeTela === 'login');
+
     if (nomeTela === 'login') {
         var fp = document.getElementById('login-form-padrao');
         var fr = document.getElementById('login-form-reset');
@@ -358,10 +361,10 @@ function vincularTelaRAI() {
     document.getElementById('btn-add-pessoa')?.addEventListener('click', adicionarEntradaPessoa);
     document.getElementById('btn-add-veiculo')?.addEventListener('click', adicionarEntradaVeiculo);
 
-    // Nav FAB
-    document.getElementById('nav-rai')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navegarPara('rai');
+    // Nav FAB - sem stopPropagation para permitir bubbling e compatibilidade com vincularNavegacao
+    // (vincularNavegacao já navega via data-tela; este handler apenas garante scroll reset)
+    document.getElementById('nav-rai')?.addEventListener('click', () => {
+        // navegarPara já é chamado pelo listener geral; este é redundante mas mantém compatibilidade
     });
 }
 
@@ -692,17 +695,26 @@ function vincularTelaConfiguracoes() {
 
     document.getElementById('btn-definir-missao')?.addEventListener('click', async () => {
         const input = document.getElementById('cfg-municipio-missao');
-        const municipio = input?.value?.trim();
-        if (!municipio) { exibirAviso('Digite o nome do município.', 'erro'); return; }
-        await window.ipiDB.definirMissao(municipio);
-        document.getElementById('missao-atual-info').textContent = `Missão: ${municipio}`;
-        exibirAviso(`Missão definida: ${municipio}`, 'sucesso');
+        const municipioRaw = input?.value?.trim();
+        if (!municipioRaw) { exibirAviso('Digite o nome do município.', 'erro'); return; }
+        // Valida contra GOIAS_MUNICIPIOS com normalização (acentos/case)
+        let municipioCanon = municipioRaw;
+        if (typeof GOIAS_MUNICIPIOS !== 'undefined') {
+            const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const found = GOIAS_MUNICIPIOS.find(m => norm(m[2]) === norm(municipioRaw));
+            if (!found && municipioRaw.length >= 3) {
+                exibirAviso('Município não encontrado em Goiás. Verifique a grafia.', 'aviso');
+            } else if (found) municipioCanon = found[2];
+        }
+        await window.ipiDB.definirMissao(municipioCanon);
+        document.getElementById('missao-atual-info').textContent = `Missão: ${municipioCanon}`;
+        exibirAviso(`Missão definida: ${municipioCanon}`, 'sucesso');
     });
 
-    // Popula datalist de municípios
+    // Popula datalist de municípios (corrige m[2] nome em vez de array inteiro)
     const datalist = document.getElementById('lista-municipios');
     if (datalist && typeof GOIAS_MUNICIPIOS !== 'undefined') {
-        datalist.innerHTML = GOIAS_MUNICIPIOS.map(m => `<option value="${m}">`).join('');
+        datalist.innerHTML = GOIAS_MUNICIPIOS.map(m => `<option value="${m[2]}">`).join('');
     }
 
     // Atualiza info do operador logado

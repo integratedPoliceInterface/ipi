@@ -14,7 +14,9 @@ function aplicarTema(tema) {
 }
 
 function setAtivo(botao) {
-    document.querySelectorAll(".botao-teste-modo").forEach(b => b.classList.remove("ativo"));
+    // Escopa apenas aos botões de aparência para não limpar estado dos botões de modo de operação
+    const container = botao.closest('.switch-modo-teste') || document;
+    container.querySelectorAll(".botao-teste-modo").forEach(b => b.classList.remove("ativo"));
     botao.classList.add("ativo");
 }
 
@@ -55,13 +57,25 @@ btnDispositivo.onclick = () => {
     setAtivo(btnDispositivo);
 };
 
-// carregar tema salvo
+// carregar tema salvo + ativa botão correspondente
 const temaSalvo = localStorage.getItem("tema");
 
 if (temaSalvo === "automatico") {
     aplicarAutomatico();
+    if (btnAuto) btnAuto.classList.add('ativo');
 } else if (temaSalvo === "dispositivo") {
     aplicarDispositivo();
-} else if (temaSalvo) {
+    if (btnDispositivo) btnDispositivo.classList.add('ativo');
+} else if (temaSalvo === "diurno") {
     aplicarTema(temaSalvo);
+    if (btnDiurno) btnDiurno.classList.add('ativo');
+} else if (temaSalvo === "noturno") {
+    aplicarTema(temaSalvo);
+    if (btnNoturno) btnNoturno.classList.add('ativo');
 }
+// Reage a mudança do sistema quando em modo dispositivo
+try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (localStorage.getItem('tema') === 'dispositivo') aplicarDispositivo();
+    });
+} catch {}

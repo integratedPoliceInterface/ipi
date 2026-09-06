@@ -18,10 +18,16 @@ class ServicoBusca {
                 resultado = await this._veiculoSMS(placa);
             }
         } else {
+            // BLACKOUT: apenas cache local (P2P Wi-Fi Direct em roadmap)
             resultado = await window.ipiDB.buscarVeiculo(placa);
         }
 
         const latenciaMs = Math.round(performance.now() - inicio);
+        // Auditoria §20.4: registra consulta
+        try {
+            const mun = await window.ipiDB.obterMissao();
+            await window.ipiDB.registrarAuditoriaConsulta('VEICULO', placa.toUpperCase(), modo, !!resultado, mun);
+        } catch {}
         return { resultado, modo, latenciaMs };
     }
 
@@ -45,6 +51,10 @@ class ServicoBusca {
         }
 
         const latenciaMs = Math.round(performance.now() - inicio);
+        try {
+            const mun = await window.ipiDB.obterMissao();
+            await window.ipiDB.registrarAuditoriaConsulta('PESSOA', consulta, modo, resultados.length > 0, mun);
+        } catch {}
         return { resultados, modo, latenciaMs };
     }
 

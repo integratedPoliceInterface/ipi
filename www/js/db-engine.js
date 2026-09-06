@@ -175,6 +175,7 @@ class SQLEngine {
             }
             stmt.free();
             this.db.run('COMMIT');
+            await this._salvarWeb();
         } catch (e) {
             this.db.run('ROLLBACK');
             throw e;
@@ -195,15 +196,15 @@ class SQLEngine {
         const colunas = Object.keys(dados);
         const valores = Object.values(dados);
         const placeholders = colunas.map(() => '?').join(', ');
-        const updates = colunas.map(c => `${c} = ?`).join(', ');
+        // Usa excluded.* para evitar duplicar params e compatibilidade com SQLCipher
+        const updates = colunas.map(c => `${c} = excluded.${c}`).join(', ');
 
         const sql = `INSERT INTO ${tabela} (${colunas.join(', ')})
                      VALUES (${placeholders})
                      ON CONFLICT(${chavePrimaria})
                      DO UPDATE SET ${updates}`;
 
-        const params = [...valores, ...valores];
-        await this.executar(sql, params);
+        await this.executar(sql, valores);
         if (this.tipo === 'web') await this._salvarWeb();
     }
 
@@ -219,12 +220,7 @@ class SQLEngine {
 
     async rechavear(novaSenha) {
         if (this.tipo === 'web') {
-            await this._salvarWeb();
             this.chave = novaSenha;
-            const dadosCripto = localStorage.getItem(DB_CHAVE);
-            if (dadosCripto) {
-                localStorage.removeItem(DB_CHAVE);
-            }
             await this._salvarWeb();
             console.log('[DB-Engine] Chave de criptografia atualizada.');
         } else {

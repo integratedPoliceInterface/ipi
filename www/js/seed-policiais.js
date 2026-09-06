@@ -16,6 +16,16 @@ async function gerarHashSenha(senha) {
 
 async function seedPolicial(matricula, nome, senha) {
     const senha_hash = await gerarHashSenha(senha);
+    // Cache local imediato (permite login offline antes de sincronizar)
+    try {
+        if (window.ipiDB) {
+            await window.ipiDB.salvarPolicial({ matricula, nome, senha_hash, unidade: 'Batalhão Rural' });
+        }
+    } catch (e) { console.warn('[Seed] Falha ao salvar policial local:', e); }
+    if (!window.supabaseClient) {
+        console.log(`[Seed] Policial ${matricula} salvo localmente (sem Supabase).`);
+        return { matricula, nome, senha_hash };
+    }
     const { data, error } = await window.supabaseClient
         .from('policiais')
         .upsert({ matricula, nome, senha_hash }, { onConflict: 'matricula' })

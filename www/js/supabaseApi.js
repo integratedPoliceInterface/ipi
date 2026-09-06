@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'https://jkmgwsrirlcsnhnnunkv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprbWd3c3Jpcmxjc25obm51bmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDIwNDQsImV4cCI6MjA4NzExODA0NH0.bNl8pgDJN3d52MRgDHT0PZS8jSFUc3oeYOl-t8UODq4';
+const SUPABASE_URL = (typeof window !== 'undefined' && (window.IPI_SUPABASE_URL || window.SUPABASE_URL)) || 'https://jkmgwsrirlcsnhnnunkv.supabase.co';
+const SUPABASE_KEY = (typeof window !== 'undefined' && (window.IPI_SUPABASE_KEY || window.SUPABASE_KEY)) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprbWd3c3Jpcmxjc25obm51bmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDIwNDQsImV4cCI6MjA4NzExODA0NH0.bNl8pgDJN3d52MRgDHT0PZS8jSFUc3oeYOl-t8UODq4';
 
 const _headers = {
     'apikey': SUPABASE_KEY,
@@ -108,11 +108,59 @@ class SupabaseInsert {
     }
 }
 
+class SupabaseUpdate {
+    constructor(table, payload) {
+        this.table = table;
+        this.payload = payload;
+        this.params = new URLSearchParams();
+        this._select = '*';
+        this._single = false;
+    }
+    eq(col, val) { this.params.set(col, `eq.${val}`); return this; }
+    select(cols) { if (cols) this._select = cols; return this; }
+    single() { this._single = true; return this; }
+    maybeSingle() { return this.single(); }
+    async then(resolve, reject) {
+        try {
+            const url = `${SUPABASE_URL}/rest/v1/${this.table}?${this.params}&select=${encodeURIComponent(this._select)}`;
+            const res = await fetch(url, { method: 'PATCH', headers: _headers, body: JSON.stringify(this.payload) });
+            const data = await res.json();
+            if (!res.ok) { reject({ code: `HTTP_${res.status}`, message: res.statusText, details: data }); return; }
+            resolve({ data: this._single ? (data[0] || null) : data, error: null });
+        } catch (e) { reject({ code: 'FETCH_ERR', message: e.message }); }
+    }
+}
+
+class SupabaseUpsert {
+    constructor(table, rows, opts) {
+        this.table = table;
+        this.rows = rows;
+        this.opts = opts || {};
+        this._select = '*';
+        this._single = false;
+    }
+    select(cols) { if (cols) this._select = cols; return this; }
+    single() { this._single = true; return this; }
+    async then(resolve, reject) {
+        try {
+            const headers = { ..._headers, Prefer: 'resolution=merge-duplicates,return=representation' };
+            if (this.opts.onConflict) headers['Prefer'] += `,on_conflict=${this.opts.onConflict}`;
+            const url = `${SUPABASE_URL}/rest/v1/${this.table}?select=${encodeURIComponent(this._select)}`;
+            const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(this.rows) });
+            const data = await res.json();
+            if (!res.ok) { reject({ code: `HTTP_${res.status}`, message: res.statusText, details: data }); return; }
+            resolve({ data: this._single ? (data[0] || null) : data, error: null });
+        } catch (e) { reject({ code: 'FETCH_ERR', message: e.message }); }
+    }
+}
+
 window.supabaseClient = {
     from(table) {
         return {
             select(columns) { return new SupabaseQuery(table).select(columns); },
-            insert(rows) { return new SupabaseInsert(table, rows); }
+            insert(rows) { return new SupabaseInsert(table, rows); },
+            update(payload) { return new SupabaseUpdate(table, payload); },
+            upsert(rows, opts) { return new SupabaseUpsert(table, rows, opts); }
         };
     }
 };

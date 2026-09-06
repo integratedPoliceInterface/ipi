@@ -98,20 +98,21 @@ ipi/
 │   ├── js/
 │   │   ├── db-engine.js          ← Motor SQLite com criptografia AES-256-CBC
 │   │   ├── db-schema.js          ← Schema SQL do banco local
-│   │   ├── db.js                 ← Serviço de banco de dados (API pública)
+│   │   ├── db.js                 ← Serviço de banco de dados (API pública + RN-006 + auditoria)
+│   │   ├── mapa-storage.js       ← PMTiles em IndexedDB (evita estouro localStorage)
 │   │   ├── protobuf.js           ← Serialização Protobuf (ipi.proto)
 │   │   ├── sms-service.js        ← Serviço de SMS (modo Fallback - RF-004)
-│   │   ├── conectividade.js      ← Gerenciador de conectividade (3 modos)
-│   │   ├── servicoBusca.js       ← Consulta veículo/pessoa
+│   │   ├── conectividade.js      ← Gerenciador de conectividade (3 modos, P2P roadmap)
+│   │   ├── servicoBusca.js       ← Consulta veículo/pessoa + auditoria
 │   │   ├── servicoSincronizacao.js ← Sincronização automática + Protobuf
-│   │   ├── auth.js               ← Autenticação PBKDF2
+│   │   ├── auth.js               ← Autenticação PBKDF2 offline-first
 │   │   ├── app.js                ← Controlador principal da interface
 │   │   ├── aparencia.js          ← Controle de tema (diurno/noturno)
 │   │   ├── mapa.js               ← Leaflet + PMTiles + rotas
 │   │   ├── seed-policiais.js     ← Script de seed de policiais
 │   │   ├── goias-municipios.js   ← 246 municípios de Goiás
-│   │   ├── configSupabase.js     ← Configuração Supabase (SDK)
-│   │   └── supabaseApi.js        ← Cliente REST Supabase (fallback)
+│   │   ├── configSupabase.js     ← Configuração Supabase (env-aware)
+│   │   └── supabaseApi.js        ← Cliente REST Supabase (fallback + update/upsert)
 │   ├── proto/
 │   │   └── ipi.proto             ← Definições Protobuf (serialização binária)
 │   ├── sw.js                     ← Service Worker (cache + range requests)
@@ -134,9 +135,11 @@ ipi/
 | Criptografia | AES-256-CBC + PBKDF2 | Proteção dos dados em repouso (RNF-001) |
 | Serialização | Protocol Buffers (protobufjs) | Economia de banda na transmissão |
 | Backend Cloud | Supabase (PostgreSQL + REST) | Sincronização central SSP-GO |
-| Mapas | Leaflet + Protomaps + PMTiles | Mapas offline (Goiás) |
+| Mapas | Leaflet + Protomaps + PMTiles | Mapas offline (Goiás) — PMTiles em IndexedDB (`mapa-storage.js`) |
 | Fallback | SMS (@capacitor/sms) | Consultas via mensagem de texto (RF-004) |
-| Autenticação | PBKDF2 + SHA-256 | Login seguro do operador |
+| Autenticação | PBKDF2 + SHA-256 | Login seguro offline-first (Supabase + cache local `policiais`) |
+| Auditoria | Supabase `auditoria_consultas` + local `auditoria_logs` | Rastreabilidade RN-006 (§20.4) |
+| P2P | Wi-Fi Direct (roadmap) | Blackout = cache local; P2P em `docs/avaliacao-pt06.md` |
 
 ---
 
@@ -171,7 +174,11 @@ ipi/
 | Protocol Buffers | Serialização binária | `protobuf.js`: carrega e usa `ipi.proto` → economia de ~60% no payload |
 | SMS Fallback | Consultas via SMS | `sms-service.js`: envia SMS real via `@capacitor/sms` + fallback via link `sms:` |
 | Alternância de modo | Automática (RN-007) | Automática por padrão; modo teste com indicador visual + botão "Voltar ao Automático" |
-| Mapa Offline | "Não finalizado" | Já estava implementado (Leaflet + PMTiles + IndexedDB → agora SQLite) |
+| Mapa Offline | "Não finalizado" (doc §22.1) | Implementado Leaflet+PMTiles: `mapa-storage.js` IndexedDB + `maps/goias.pmtiles` + fallback SQLite |
+| P2P Wi-Fi Direct | "Viaturas trocam via Wi-Fi Direct/Mesh" (§20.2.3) | BLACKOUT = cache local; P2P em roadmap (`docs/avaliacao-pt06.md`), não integra MVP |
+| RN-003 duplicado | 2× "Sincronização Automática" | Corrigido para RN-003 = Retenção Local e Auditoria (fila persistente) |
+| RN-006 imutável | "Não editar após sync" sem implementação | Trigger `003_rn006_imutabilidade.sql` + trava local `db.js:39` + `auditoria_consultas` |
+| RF-004/RF-005 | "Planejado" | RF-004 SMS e RF-005 Mapas → `Implementado` (doc atualizado) |
 
 ---
 

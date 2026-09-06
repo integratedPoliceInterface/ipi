@@ -1,0 +1,924 @@
+﻿Documento de Especificação de Projeto Integrador
+Integrated Police Interface (IPI)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sumário
+1. PARTE 00 - HISTÓRICO DE VERSÃO DO PROJETO        4
+2. PARTE 01 – IDENTIFICAÇÃO DO PRODUTO, EQUIPE E REPOSITÓRIO        5
+3. 1 IDENTIFICAÇÃO DO PRODUTO        6
+4. 2 DESCRIÇÃO GERAL DO PRODUTO        7
+5. 2.1 Resumo do Negócio        7
+6. 2.2 Problemas Identificados        8
+7. 3 EQUIPE DO PROJETO        9
+8. 4 RESPOSITÓRIOS E ARTEFATOS DO PROJETO        10
+9. PARTE 02 – PLANEJAMENTO DO SEMESTRE        12
+10. 5 SITUAÇÃO ATUAL DO PROJETO        12
+11. 6 OBJETIVOS DO SEMESTRE        13
+12. 7 CRONOGRAMA DO SEMESTRE        13
+13. PARTE 03 – ENTENDIMENTO DO PÚBLICO, DO NEGÓCIO E LEVANTAMENTO INICIAL DE REQUISITOS        15
+14. 8 PÚBLICO-ALVO DO PRODUTO        15
+15. 9 CONTEXTO DE NEGÓCIO        16
+16. 10 SOLUÇÕES EXISTENTES        16
+17. 11 PESQUISA COM USUÁRIOS        17
+18. 12 RESULTADOS DE PESQUISA COM USUÁRIO        17
+19. 13 REGRAS DE NEGÓCIO        18
+20. 14 REQUISITOS FUNCIONAIS        18
+21. 15 REQUISITOS NÃO FUNCIONAIS        19
+22. PARTE 04 – DESIGN, MODELAGEM, DADOS E SOLUÇÃO TECNOLÓGICA        21
+23. 16 DESIGN DA SOLUÇÃO E EXPERIÊNCIA DO USUÁRIO        21
+24. 16.1 Fluxo de Navegação        21
+25. 16.2 Protótipos do Sistema        21
+26. 17 GESTÃO DO PROJETO DE MODELAGEM DO SISTEMA        21
+27. 17.1 Organização do Projeto (Abordagem Ágil)        22
+28. 17.2 Modelagem e Diagramas do Sistema        22
+29. 18 DADOS E MODELAGEM DA INFORMAÇÃO        22
+30. 18.1 Modelo de Dados        23
+31. 18.2 Estrutura e Manipulação de Dados        23
+32. 19 SOLUÇÃO TECNOLÓGICA E EXPERIMENTAÇÃO TÉCNICA INICIAL        23
+33. 19.1 Escolhas Tecnológicas        23
+34. 19.2 Experimentação Técnica e Primeiros Testes        24
+35. PARTE 05 – ARQUITETURA, TECNOLOGIA E IMPLEMENTAÇÃO EVOLUTIVA DO SISTEMA        25
+36. 20 ARQUITETURA GERAL DO SISTEMA        25
+37. 21 TECNOLOGIAS E FERRAMENTAS DO PROJETO        26
+38. 22 IMPLEMENTAÇÃO POR CAMADAS DO SISTEMA        26
+39. 22.1 Frontend        27
+40. 22.2 Backend        27
+41. 23 ORGANIZAÇÃO DO CÓDIGO E REPOSITÓRIO        28
+42. PARTE 06 – QUALIDADE, SEGURANÇA, AVALIAÇÃO E EXTENSÕES DO PROJETO        29
+43. 24 QUALIDADE DO SOFTWARE E TESTES        29
+44. 25 SEGURANÇA DA INFORMAÇÃO        29
+45. 26 EXTENSÕES E TECNOLOGIAS COMPLEMENTARES        30
+46. 27 AVALIAÇÃO GERAL DO PROJETO INTEGRADOR        30
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARTE 00 - HISTÓRICO DE VERSÃO DO PROJETO
+Versão
+	Período
+	Fase
+	Data
+	Descrição
+	 1.0
+	 5º
+	   01
+	    08/03/2026
+	Definição do projeto, criação inicial do documento do projeto, criação da descrição geral do produto (2), definição dos requisitos funcionais (14) e não funcionais (15), definição dos diagramas do sistema (17.2), definição e modelagem de dados (18), definição da arquitetura geral do sistema (20) e definição de tecnologias e ferramentas que fazem parte do projeto (21).
+	  1.0
+	  5°
+	   02
+	    19/04/2026
+	Melhorias técnicas na edição da documentação (normas da ABNT) e implementação do database do software. Além é claro da aplicação BETA do software via Web. 
+	  1.0
+	  5°
+	   03
+	    13/05/2026
+	Finalização da documentação.
+	
+
+PARTE 01 – IDENTIFICAÇÃO DO PRODUTO, EQUIPE E REPOSITÓRIO
+1 IDENTIFICAÇÃO DO PRODUTO
+Nome do Produto: Interface Policial Integrada (IPI)
+Descrição do Produto: Aplicativo móvel tático desenvolvido para apoiar operações de policiamento ostensivo e investigativo, permitindo a realização de Registros de Atendimento Integrado (RAI), além de consultas de veículos e pessoas diretamente em campo. Seu principal diferencial é a alta resiliência de rede, operando em três modos de conectividade: CLOUD, FALLBACK e BLACKOUT, garantindo continuidade operacional mesmo em cenários sem acesso à internet. A solução funciona de forma 100% offline por meio do armazenamento local utilizando IndexedDB, permitindo registrar, consultar e armazenar dados no próprio dispositivo móvel. Assim que a conexão é restabelecida, o sistema realiza automaticamente a sincronização das informações com os servidores centrais, assegurando integridade, confiabilidade e atualização contínua dos dados operacionais.
+2 DESCRIÇÃO GERAL DO PRODUTO
+O sistema Integrated Police Interface (IPI) foi desenvolvido no âmbito da segurança pública, com aplicação direcionada ao patrulhamento rural realizado pelo Batalhão Rural da Polícia Militar de Goiás. Sua concepção parte da necessidade de assegurar a continuidade das atividades operacionais como abordagens, fiscalizações e registros de ocorrências em áreas extensas, marcadas por limitações ou ausência de conectividade à internet. Nesse contexto, busca-se evitar que a indisponibilidade de sinal comprometa tanto a segurança dos agentes quanto a eficiência das respostas operacionais.
+A proposta do sistema concentra-se em dois desafios centrais. O primeiro diz respeito à descontinuidade no fluxo informacional, que dificulta o acesso imediato a dados críticos, como mandados de prisão e registros de veículos roubados, além de postergar o registro formal de ocorrências, frequentemente acumuladas até o retorno das equipes à base. O segundo refere-se à vulnerabilidade no armazenamento de dados, reduzindo o risco de extravio ou acesso indevido a informações sensíveis, especialmente quando registradas manualmente ou mantidas em dispositivos móveis suscetíveis a perda ou furto.
+Como resposta a essas limitações, o IPI adota o paradigma de priorização do funcionamento offline (offline-first), permitindo que as informações sejam registradas localmente de forma segura, mediante mecanismos de criptografia. Destaca-se, ainda, sua arquitetura de conectividade adaptativa, estruturada em três modos operacionais complementares: o modo Nuvem, que viabiliza a sincronização em tempo real por meio de redes 4G/5G; o modo Fallback, que possibilita consultas essenciais via SMS codificado em cenários de conectividade restrita à rede de voz; e o modo Blackout, que garante a plena operação offline, com suporte a consultas em cache local e intercâmbio de dados entre viaturas próximas por meio de Wi-Fi Direct.
+Adicionalmente, o sistema incorpora o denominado Modo Tático, uma interface projetada para alta legibilidade sob condições adversas, como exposição direta à luz solar, assegurando sua usabilidade e eficácia no contexto operacional em campo.
+2.1 Resumo do Negócio
+O sistema Integrated Police Interface (IPI) insere-se no contexto da segurança pública, especificamente no patrulhamento rural realizado pelo Batalhão Rural da Polícia Militar do Estado de Goiás. A atividade principal envolve o policiamento preventivo e repressivo em vastas áreas geográficas, onde as equipes realizam abordagens, fiscalização de propriedades e registros de ocorrências. Este cenário é extremamente relevante pois a ausência de conectividade estável no campo impede o acesso a dados críticos em tempo real, comprometendo a agilidade da resposta policial e a segurança tanto dos agentes quanto dos produtores rurais.
+2.2 Problemas Identificados
+Item
+	Descrição
+	O problema de
+	Interrupção do fluxo de informações por falta de conectividade.
+	Afeta
+	Equipes policiais em patrulhamento, gestores de segurança pública e a população rural.
+	Cujo impacto é
+	Impossibilidade de consultar mandados de prisão ou veículos roubados no momento da abordagem, além do atraso no registro de ocorrências que ficam represadas até o retorno à base.
+	Benefícios de uma solução seriam
+	Continuidade das operações em áreas sem sinal, permitindo consultas instantâneas a bases de dados locais e garantindo que o trabalho policial não seja interrompido pela geografia.
+	
+
+
+
+Item
+	Descrição
+	O problema de
+	Insegurança e vulnerabilidade de dados coletados em campo.
+	Afeta
+	Instituições de segurança pública (SSP-GO) e a integridade jurídica dos processos.
+	Cujo impacto é
+	Risco de perda de informações sensíveis coletadas manualmente ou armazenadas de forma insegura em dispositivos móveis caso ocorra furto, perda ou apreensão do equipamento.
+	Benefícios de uma solução seriam
+	Garantia de que todos os dados coletados offline sejam protegidos e rastreáveis, assegurando que a informação chegue íntegra ao sistema central para devida auditoria.
+	
+
+3 EQUIPE DO PROJETO
+Matrícula
+	Nome Completo
+	Função no Projeto
+	2411748
+	Marcos Gabriel Souza
+Conceição
+	
+
+Scrum Master
+
+
+	2411985
+	Pablo Werner 
+Miranda
+	Product Owner
+	
+
+2412276
+
+
+	Pedro Henrique 
+Garcia Dos Santos
+	Desenvolvedor
+	2411706
+	Pedro Wilson Rodrigues Moreira
+	Desenvolvedor
+	
+
+
+
+
+
+
+
+
+
+4 REPOSITÓRIOS E ARTEFATOS DO PROJETO
+PARTE 02 – PLANEJAMENTO DO SEMESTRE
+5 SITUAÇÃO ATUAL DO PROJETO 
+De acordo com o histórico de versão e o detalhamento das seções concluídas até o momento (Versão 1.0 de 08/03/2026), a situação atual do projeto Integrated Police Interface (IPI) pode ser detalhada nos seguintes eixos:
+a) Estágio de Desenvolvimento (5º Período)
+O projeto encontra-se na Fase 02 do 5º Período de Engenharia de Software. Nesta etapa, a equipe consolidou a base documental e técnica necessária para a evolução do sistema, saindo do campo da ideação para a especificação técnica detalhada.
+b) Artefatos e Definições Consolidadas
+Até o presente estágio, o projeto reúne um conjunto estruturado de definições que conferem sustentação ao seu desenvolvimento e à sua viabilidade técnica.
+Escopo e Problematização: Realizou-se um levantamento minucioso dos principais entraves relacionados à conectividade enfrentados pelo Batalhão Rural da PM-GO. Dentre as dificuldades identificadas, sobressaem-se as interrupções no fluxo informacional durante as atividades em campo, bem como a fragilidade decorrente do registro manual de dados. Tais limitações afetam diretamente a eficiência das operações e comprometem a confiabilidade e a segurança das informações coletadas, evidenciando a necessidade de implementação de uma solução tecnológica mais robusta e adequada ao contexto operacional.
+Requisitos de Software: Os requisitos funcionais foram definidos com base nas demandas práticas dos usuários finais. Nesse sentido, destaca-se o Registro de Atendimento Integrado (RAI) Offline (RF-001), que viabiliza o registro de ocorrências independentemente de conexão com a internet, e a funcionalidade de Sincronização Automática (RF-003), responsável por assegurar a atualização dos dados assim que a conectividade é restabelecida. Ambos os requisitos são essenciais para garantir a continuidade das operações em ambientes caracterizados por infraestrutura limitada.
+Modelagem de Dados: A estrutura de dados foi concebida a partir de um modelo relacional otimizado para utilização com SQLite, priorizando desempenho e leveza em dispositivos móveis. Essa escolha possibilita a execução eficiente de consultas locais, especialmente em processos de verificação de veículos e indivíduos, assegurando autonomia operacional mesmo em cenários offline. Ademais, a modelagem contempla mecanismos que preservam a integridade e a consistência dos dados durante os processos de sincronização.
+Arquitetura: Adotou-se uma arquitetura composta por quatro camadas, das quais são: Interface, Lógica, Comunicação e Persistência. Tal objetivo tem a finalidade de promover uma clara separação de responsabilidades. Tal estrutura favorece a manutenção e a escalabilidade do sistema, além de ampliar sua modularidade, permitindo a incorporação de futuras evoluções tecnológicas com impactos mínimos sobre as demais camadas.
+3. Situação Tecnológica
+A stack tecnológica está definida e em fase de experimentação inicial, utilizando:
+* Frontend: HTML5, CSS3 e JavaScript.
+* Mobile: Uso do framework Capacitor (Ionic) para converter a aplicação web em código nativo para Android.
+* Comunicação: Implementação de protocolos de baixo consumo de dados e serialização via Protocol Buffers para suportar redes 2G ou SMS.
+4. Próximos Passos Planejados
+Dentro do planejamento do semestre, o tópico indica que o foco atual é a transição da modelagem para a implementação evolutiva, visando garantir que as funcionalidades de cache inteligente e modos de conectividade (Cloud, Fallback e Blackout) operem de forma integrada.
+6 OBJETIVOS DO SEMESTRE
+O objetivo central deste estágio consiste em promover a transição dos fundamentos teóricos para sua efetiva aplicação técnica, com ênfase na construção do núcleo operacional do sistema (MVP). Essa etapa prioriza a implementação de uma abordagem Offline-First, de modo a atender às demandas específicas do Batalhão Rural da PM-GO em contextos de baixa ou inexistente conectividade.
+Entre as metas estabelecidas, destaca-se o desenvolvimento dos requisitos funcionais essenciais. O Registro de Ocorrência em modo offline (RAI – RF-001) visa assegurar que as informações possam ser coletadas e armazenadas independentemente do acesso à internet. Complementarmente, a Consulta em Cache (RF-002) possibilita a verificação local de dados relativos a veículos e indivíduos, ampliando a autonomia operacional em campo. Já a Sincronização Automática (RF-003) garante que os registros sejam transmitidos à central assim que houver restabelecimento da conectividade, mantendo a consistência e atualização das informações.
+Paralelamente, o período contempla a consolidação da arquitetura em camadas, com a validação de uma lógica de conectividade adaptativa, capaz de alternar entre os modos Nuvem, Fallback (via SMS) e Blackout. Essa abordagem busca assegurar a continuidade operacional em diferentes cenários de comunicação, ao mesmo tempo em que preserva a integridade jurídica dos dados e a segurança das informações sensíveis, por meio da utilização de um banco de dados SQLite com mecanismos de criptografia.
+Por fim, prevê-se a entrega de uma interface de alta visibilidade, denominada Modo Tático, concebida para otimizar a usabilidade em condições adversas, como exposição à luz solar intensa. Dessa forma, pretende-se garantir que o sistema não apenas atenda aos requisitos técnicos, mas também se configure como uma ferramenta prática, eficiente e adequada à realidade operacional do policial em campo.
+7 CRONOGRAMA DO SEMESTRE
+Fase 01 (Concluída)
+* Data de Referência: 08/03/2026 (Versão 1.0)
+* Atividades Desenvolvidas: Esta etapa concentrou-se integralmente na estruturação conceitual e estratégica do projeto. Foram elaboradas a descrição geral do produto, a identificação e formalização dos requisitos funcionais e não funcionais, bem como a modelagem de dados e a construção dos principais diagramas do sistema. Tal abordagem permitiu estabelecer uma base sólida para as fases subsequentes de desenvolvimento.
+* Arquitetura: Definiu-se uma arquitetura composta por quatro camadas, orientada à separação de responsabilidades, além da seleção inicial das tecnologias a serem empregadas. Essas definições forneceram diretrizes claras para a implementação futura do sistema.
+Fase 02 (Atual/Em Desenvolvimento)
+* Foco Principal: A presente fase é dedicada à implementação técnica e incremental da solução proposta, com vistas à construção de um sistema funcional.
+* Desenvolvimento de Frontend: As interfaces estão sendo desenvolvidas com base em HTML5, CSS3 e JavaScript, priorizando o Modo Tático, caracterizado por alto contraste e otimização para uso em condições adversas de luminosidade.
+* Funcionalidades Centrais: Contempla-se a implementação dos principais recursos do sistema, incluindo o registro de ocorrências em modo offline (RAI), a realização de consultas em cache local e a definição da lógica de sincronização automática dos dados.
+* Integração Nativa: Emprega-se o framework Capacitor (Ionic) para viabilizar a conversão da aplicação web em um aplicativo móvel compatível com plataformas Android, ampliando sua aplicabilidade em campo.
+* Persistência de Dados: Está prevista a implementação de um banco de dados local utilizando SQLite com mecanismos de criptografia, assegurando a proteção das informações coletadas durante as operações.
+
+
+PARTE 03 – ENTENDIMENTO DO PÚBLICO, DO NEGÓCIO E LEVANTAMENTO INICIAL DE REQUISITOS
+
+
+8 PÚBLICO-ALVO DO PRODUTO
+O público-alvo do sistema estrutura-se em três grupos centrais, definidos a partir de suas funções e do contexto específico da segurança pública em áreas rurais.
+Em primeiro lugar, destacam-se as equipes policiais em patrulhamento rural, configurando-se como os usuários diretos da solução. Nesse contexto, o Batalhão Rural da Polícia Militar do Estado de Goiás representa o principal cenário de aplicação, caracterizado por extensas áreas territoriais e frequentes limitações de conectividade. Para esses agentes, o IPI assume o papel de ferramenta tática essencial, permitindo a execução de abordagens, fiscalização de propriedades e registro de ocorrências (RAI) de forma contínua, independentemente da disponibilidade de acesso à internet.
+Em um segundo nível, situam-se os gestores de segurança pública, especialmente vinculados à Secretaria de Segurança Pública do Estado de Goiás (SSP-GO). Esse grupo ocupa uma posição estratégica, sendo diretamente beneficiado pela confiabilidade e rastreabilidade das informações coletadas em campo. A solução proposta assegura que os dados registrados em modo offline sejam posteriormente sincronizados de maneira íntegra com os sistemas centrais, contribuindo para processos de auditoria, tomada de decisão e análise criminal.
+Por fim, inclui-se a população rural e os produtores como público beneficiário indireto. Embora não interajam diretamente com o sistema, esses atores são impactados positivamente pelos ganhos operacionais proporcionados à atividade policial. A ampliação da eficiência e da continuidade das ações em campo resulta em maior agilidade nas respostas e no fortalecimento da segurança nas regiões atendidas, superando as limitações impostas pela infraestrutura de conectividade.
+9 CONTEXTO DE NEGÓCIO
+O projeto nasce da necessidade de manter a operacionalidade das forças de segurança em áreas de sombra de conectividade (zonas rurais, subsolos, periferias densas). O negócio exige que o policial continue podendo consultar dados cacheados e registrar ocorrências sem interrupção, evitando perda de informações, retrabalho ou a dependência exclusiva de rádio comunicador durante falhas na rede de dados móveis.
+10 SOLUÇÕES EXISTENTES
+As soluções atuais de registro de ocorrências policiais frequentemente exigem conexão ininterrupta com os servidores centrais. Ao perder o sinal, o aplicativo padrão trava ou descarta os dados em preenchimento. O IPI inova ao implementar um padrão de degradação suave ("graceful degradation") de rede, permitindo que a aplicação transite do modo online para o modo offline (Blackout) de forma automática e transparente para o usuário.
+11 PESQUISA COM USUÁRIOS
+A pesquisa indicou que o principal ponto de frustração dos agentes de segurança é a perda de registros longos (como narrativas de Registro de Atendimento Integrado) devido à queda repentina da conexão 3G/4G no momento do envio. Além disso, a luminosidade de interfaces padrão (fundo branco) prejudica a visão noturna dos policiais em viaturas.
+12 RESULTADOS DE PESQUISA COM USUÁRIO
+Os resultados da pesquisa direcionaram duas decisões arquitetônicas fundamentais: 
+* O desenvolvimento de um tema estritamente "tático" (Dark Mode) de alto contraste para não ofuscar o policial em operações noturnas. 
+* A necessidade primária de persistência local primeiro (Offline-first architecture), priorizando o salvamento no dispositivo (IndexedDB) antes do envio à nuvem.
+13 REGRAS DE NEGÓCIO
+ID
+	Regra de Negócio
+	Descrição Detalhada
+	RN-001
+	Priorização de Estado Offline
+	O sistema deve sempre permitir o registro de dados localmente, independentemente do estado da conexão, priorizando a continuidade da operação policial.
+	RN-002
+	Sincronização Automática
+	Toda ocorrência salva em modo offline deve ser enviada automaticamente aos servidores da SSP-GO assim que o backend detectar uma conexão estável (Modo Cloud).
+	RN-003
+	Sincronização Automática
+	Toda ocorrência salva em modo offline deve ser enviada automaticamente aos servidores da SSP-GO assim que o backend detectar uma conexão estável (Modo Cloud).
+	RN-004
+	Geolocalização Obrigatória
+	O sistema deve tentar capturar automaticamente as coordenadas de GPS no momento do registro da ocorrência.
+	RN-005
+	Seletividade de Cache
+	O download de dados para consulta offline (cache inteligente) deve ser restrito à região geográfica de atuação da equipe para otimizar o armazenamento do dispositivo.
+	RN-006
+	Integridade de Registro
+	Uma ocorrência salva localmente não pode ser editada após a sincronização com o sistema central da SSP-GO, visando a segurança jurídica e auditoria.
+	RN-007
+	Alternância de Conectividade
+	A transição entre os modos Cloud, Fallback e Blackout deve ser realizada de forma automática pelo sistema, sem necessidade de intervenção manual do policial
+	
+
+14 REQUISITOS FUNCIONAIS
+ID
+	Descrição
+	Status
+	Prioridade
+	RF-001
+	Registro de Ocorrência (RAI) Offline
+	Implementado
+	Alta
+	Detalhamento: O sistema deve permitir que o policial preencha e salve todos os dados de um Boletim de Ocorrência, mesmo que o dispositivo esteja sem qualquer conexão com a internet no momento do atendimento.
+	
+
+
+
+
+
+
+
+ID
+	Descrição
+	Status
+	Prioridade
+	RF-002
+	Consulta de Veículos e Pessoas em Cache
+	Implementado
+	Alta
+	Detalhamento: O sistema deve permitir a consulta de placas de veículos e CPFs utilizando uma base de dados previamente baixada para o dispositivo, garantindo o acesso a mandados e restrições em áreas de sombra.
+	
+
+ID
+	
+
+	Status
+	Prioridade
+	RF-003
+	Sincronização Automática de Dados
+	Implementado
+	Alta
+	Detalhamento: O sistema deve detectar automaticamente o retorno do sinal de rede e enviar todos os dados acumulados localmente para a central da SSP-GO, sem a necessidade de intervenção manual do usuário.
+	
+
+ID
+	
+
+	Status
+	Prioridade
+	RF-004
+	Consulta via Mensagem de Texto (Fallback)
+	Planejado
+	Média
+	Detalhamento: O sistema deve permitir que, em locais com sinal de voz mas sem internet, o policial solicite uma consulta que será enviada e respondida através de mensagens de texto codificadas.
+	
+
+ID
+	
+
+	Status
+	
+
+	RF-005
+	Visualização de Mapas Offline
+	Planejado
+	Média
+	Detalhamento: O usuário deve conseguir visualizar mapas topográficos e rotas rurais da sua região de atuação sem depender de carregamento via internet (Google Maps/Waze).
+	
+
+15 REQUISITOS NÃO FUNCIONAIS
+ID
+	Descrição
+	Status
+	Prioridade
+	RNF-001
+	Segurança e Sigilo dos Dados Locais
+	Implementado
+	Alta
+	Detalhamento: Toda informação armazenada no tablet deve ser protegida de forma que, se o equipamento for perdido ou acessado por pessoas não autorizadas, os dados permaneçam ilegíveis.
+	
+
+
+
+ID
+	Descrição
+	Status
+	Prioridade
+	RNF-002
+	Interface de Alta Visibilidade (Modo Tático)
+	Implementado
+	Alta
+	Detalhamento: A interface do sistema deve possuir cores e contrastes otimizados para operação sob luz solar intensa e condições de campo, evitando reflexos que dificultem a leitura.
+	
+
+ID
+	Descrição
+	Status
+	Prioridade
+	RNF-003
+	Eficiência de Bateria
+	Planejado
+	Média
+	Detalhamento: O sistema deve operar de forma otimizada para não drenar excessivamente a bateria do tablet durante o turno de patrulhamento, especialmente em buscas constantes por sinal de rede.
+	
+
+ID
+	Descrição
+	Status
+	Prioridade
+	RNF-004
+	Confiabilidade na Transmissão
+	Planejado
+	Alta
+	Detalhamento: O sistema deve garantir que nenhum dado registrado pelo policial seja perdido em caso de queda brusca de sinal ou desligamento inesperado do aparelho.
+	
+
+ID
+	Descrição
+	Status
+	Prioridade
+	RNF-005
+	Tempo de Resposta em Consultas Locais
+	Planejado
+	Média
+	Detalhamento: As consultas realizadas no banco de dados local (offline) devem apresentar resultados em menos de 2 segundos, garantindo agilidade na abordagem policial.
+	
+
+PARTE 04 – DESIGN, MODELAGEM, DADOS E SOLUÇÃO TECNOLÓGICA
+16 DESIGN DA SOLUÇÃO E EXPERIÊNCIA DO USUÁRIO
+16.1 Fluxo de Navegação
+O fluxo principal do sistema foi projetado para ser simples, direto e eficiente, considerando o contexto operacional dos policiais em campo, especialmente em áreas rurais com limitações de conectividade.
+16.1.1 Acesso inicial ao sistema
+Ao abrir a aplicação, o usuário é direcionado automaticamente para o Painel Tático (tela inicial).
+Nessa tela, são exibidas informações essenciais como:
+* Status de conectividade (Nuvem, SMS ou Blackout);
+* Indicador de GPS;
+* Estatísticas rápidas (ocorrências pendentes, sincronizadas, dados em cache);
+* Nome do operador.
+Além disso, o sistema já inicia serviços em segundo plano, como:
+* Monitoramento de conectividade;
+* Inicialização do banco de dados local;
+* Tentativa de sincronização automática.
+16.1.2 Escolha da ação principal
+A partir do painel inicial, o usuário possui dois caminhos principais:
+* Registrar uma nova ocorrência (RAI)
+* Realizar uma consulta (veículo ou pessoa)
+16.1.3 Registro de Ocorrência (RAI)
+Ao selecionar a opção de novo registro:
+1. O usuário é direcionado para a tela de formulário de ocorrência;
+2. Preenche os dados obrigatórios, como:
+* Tipo de ocorrência;
+* Descrição;
+* Local/endereço;
+3. Pode adicionar:
+* Pessoas envolvidas;
+* Veículos relacionados;
+4. Pode capturar a localização via GPS manualmente;
+5. Finalize clicando em “Salvar Registro” ou “Cancelar” se houver algum erro.
+Comportamento do sistema:
+* Se houver internet → o registro é salvo e sincronizado automaticamente;
+* Se estiver offline → o registro é armazenado localmente (cache).
+16.1.4 Consulta de Veículos e Pessoas
+Ao acessar a funcionalidade de consulta:
+1. O usuário escolhe o tipo de busca (veículo ou pessoa);
+2. Insere os dados (placa, CPF ou nome);
+3. Executa a busca.
+Comportamento do sistema:
+* Em modo Nuvem → consulta realizada no servidor;
+* Em modo SMS → consulta simulada via fallback;
+* Em modo Blackout → consulta realizada no cache local.
+Os resultados são exibidos em formato de cards, com destaque para situações de alerta.
+16.1.5 Funcionamento Offline e Sincronização
+Caso o sistema esteja sem conexão:
+* Todas as ações continuam funcionando normalmente em modo offline;
+* Os dados são armazenados localmente no dispositivo;
+* O sistema informa claramente o modo atual ao usuário.
+Quando a conexão é restabelecida:
+* O sistema detecta automaticamente;
+* Inicia a sincronização dos dados pendentes;
+* Exibe notificações informando o sucesso da operação.
+16.1.6 Visualização do Mapa
+ O usuário poderá, por meio da tela do mapa:
+* Visualizar sua localização atual;
+* Pesquisar um local específico;
+* Visualizar a rota mais eficiente da sua posição até o local pesquisado;
+* Realizar diferentes buscas de locais, limpando o mapa quando necessário.
+16.1.7 Consulta ao Histórico
+O usuário pode acessar a tela de histórico para:
+* Visualizar ocorrências já registradas;
+* Identificar quais foram sincronizadas ou ainda estão pendentes;
+* Acompanhar data, tipo e descrição das ocorrências.
+16.1.8 Configurações do Sistema
+Na área de configurações, o usuário pode:
+* Definir seus dados (nome e matrícula);
+* Alternar entre modos de aparência (diurno, noturno, automático);
+* Simular modos de conectividade (para testes);
+* Gerenciar o cache local (limpar ou recarregar dados).
+16.2 Protótipos do Sistema
+A interface do sistema foi projetada com foco na usabilidade em ambientes operacionais rurais, considerando as condições reais enfrentadas por agentes de segurança pública, como variações de luminosidade, limitação de conectividade e necessidade de respostas rápidas.
+Para atender a esses cenários, foram implementados dois modos principais de exibição: modo diurno e modo noturno, permitindo melhor adaptação visual conforme o ambiente de uso. Além disso, o sistema conta com opções automáticas de ajuste de tema com base no horário ou nas configurações do dispositivo, proporcionando maior conforto visual e redução de fadiga durante longos períodos de utilização.
+A interface foi estruturada com base nos seguintes princípios:
+Clareza visual: Uso de tipografia legível e elementos com bom contraste.
+Acesso rápido: Botões grandes e bem distribuídos, facilitando a interação em campo.
+Padronização: Componentes visuais consistentes (botões, cards, indicadores), reduzindo curva de aprendizado.
+Feedback imediato: Utilização de avisos (toasts), indicadores de status e cores para informar ações e estados do sistema (ex: conectado, offline, erro).
+
+
+Os principais elementos da interface incluem:
+
+
+Painel tático inicial: Com acesso rápido às funcionalidades principais (registro de ocorrência e consulta);
+Módulo de mapa interativo: Ferramenta de geolocalização em tempo real que exibe a posição atual do agente, permite a busca por novos destinos e realiza o cálculo de rotas otimizadas para o deslocamento em campo;
+Cards informativos: Exibindo estatísticas e status do sistema;
+Indicadores de conectividade: Mostrando se o sistema está em modo Nuvem, SMS (contingência) ou Blackout;
+Formulários otimizados: Com campos organizados para preenchimento rápido de ocorrências (RAI);
+Sistema de navegação inferior: Permitindo alternância ágil entre telas.
+Essa abordagem garante uma experiência eficiente, intuitiva e adaptada ao contexto de uso real, contribuindo diretamente para a agilidade e precisão das operações policiais em campo.
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+17 GESTÃO DO PROJETO DE MODELAGEM DO SISTEMA
+
+
+
+
+17.1 Organização do Projeto (Abordagem Ágil)
+O desenvolvimento do sistema Integrated Police Interface (IPI) foi conduzido utilizando práticas de metodologias ágeis, com adoção do framework Scrum aliado ao método Kanban para acompanhamento contínuo das atividades. Essa abordagem foi escolhida devido à necessidade de evolução incremental do sistema, permitindo maior flexibilidade diante das mudanças de requisitos e das demandas técnicas identificadas durante o desenvolvimento do projeto.
+A equipe organizou o fluxo de trabalho em ciclos iterativos de desenvolvimento (Sprints), nos quais funcionalidades prioritárias eram planejadas, implementadas e avaliadas progressivamente. O gerenciamento das tarefas foi realizado por meio da plataforma Jira, utilizada para controle de backlog, definição de prioridades, acompanhamento de progresso e distribuição das responsabilidades entre os integrantes do grupo.
+
+
+17.2 Modelagem e Diagramas do Sistema
+  
+
+A aplicação está estruturada em quatro camadas interdependentes que garantem a operação do Batalhão Rural mesmo em condições extremas de conectividade.
+1. Interface
+* Tecnologias: HTML5, CSS3 e JavaScript.
+* Função: É a face do aplicativo utilizada pelo policial para preencher o formulário e realizar consultas.
+* Diferencial: Deve ser responsiva e de alto contraste (foco em uso sob sol forte).
+2. Lógica da Aplicação
+* Gerenciamento de Conectividade: O JavaScript atua como o centro da lógica operacional, monitorando o sinal para decidir qual nível de rede usar (Cloud, Fallback ou Blackout).
+* Serialização: Antes do envio, o sistema converte os dados em binário para reduzir o tamanho das mensagens em até 90%, permitindo tráfego em redes 2G ou via SMS.
+* Controle de Sincronização: Gerencia a fila de dados, garantindo que o que foi registrado offline seja enviado assim que houver sinal.
+3. Comunicação
+* Cloud: Sincronização em tempo real via internet estável com a API da SSP-GO.
+* Fallback: Uso de mensagens de texto codificadas para consultas quando não há internet, mas existe sinal de voz.
+* Blackout: Ativação do modo de sobrevivência e transferencia de dados, onde as viaturas trocam dados diretamente entre si via Wi-Fi Direct ou Mesh.
+4. Persistência de Dados
+* Banco SQLite Criptografado: Utiliza o motor SQLite com criptografia para salvar as ocorrências localmente com segurança máxima.
+* Cache Local: Armazena o perfil  da região baixado previamente, permitindo consultas instantâneas sem depender da nuvem.
+  
+
+Os componentes internos do aplicativo interagem entre si e com os servidores centrais. Enquanto a imagem anterior focava na divisão por camadas, esta ilustra a dinâmica operacional do software.
+a) Núcleo do Dispositivo (Aplicativo Mobile IPI)
+O topo do diagrama mostra o aplicativo consolidado. Ele é alimentado por duas frentes principais:
+* Interface do Usuário (UI): Onde o policial interage com as telas de registro e consulta.
+* Gerenciador de Conectividade: O componente crítico que monitora o estado da rede em tempo real para decidir o fluxo de dados.
+b) Ciclo de Dados Interno
+O lado esquerdo do diagrama foca na Inteligência Offline:
+* Sincronização de Dados: Este módulo garante que o banco de dados local (SQLite) esteja sempre pronto. Ele recebe atualizações dos servidores quando há sinal e armazena os registros feitos pelo policial em áreas de sombra.
+* A conexão direta entre a Interface e a Sincronização permite que o policial consulte dados e salve ocorrências de forma instantânea, independente da internet.
+c) Ciclo de Comunicação Externa
+O lado direito detalha os Canais de Contingência:
+* Comunicação P2P / SMS: Este módulo é ativado pelo Gerenciador de Conectividade quando a internet falha. Ele gerencia o envio de consultas via SMS codificado ou a troca de informações diretamente entre viaturas próximas (P2P/Blackout).
+d) Base Institucional (Servidores SSP-GO)
+A base do diagrama representa o destino final e a fonte primária de informações:
+* O sistema busca manter uma linha de sincronização constante com os servidores centrais.
+* O fluxo é bidirecional: o aplicativo envia novos registros e recebe atualizações de mandados, placas e perfis criminais para o cache local.
+
+
+  
+
+Representação lógica algorítmica que o sistema IPI utiliza para garantir que o policial nunca fique sem comunicação, independentemente da qualidade do sinal no campo.
+e) Gatilho de Verificação (Ponto de Decisão)
+O processo começa com o componente "Verificar Conectividade". O software realiza uma varredura constante das interfaces de rede do dispositivo. Realização constante de verificação de rede:
+1) CLOUD
+Se a resposta for SIM (presença de 4G/5G ou Wi-Fi de alta qualidade):
+* O sistema ativa a Comunicação via API.
+* Ocorre a Sincronização Direta, onde os dados são espelhados em tempo real entre o tablet e os servidores da SSP-GO.
+2) Fallback: Transição Cloud para SMS
+Curiosamente, o diagrama mostra uma seta de retorno do Modo Cloud para o Modo Fallback. Isso representa a resiliência do sistema: se durante uma sincronização a internet oscilar e cair abaixo do nível mínimo de estabilidade, o software interrompe o tráfego pesado e se prepara para o envio simplificado.
+3) BLACKOUT
+Se o sinal de celular for totalmente perdido:
+* O sistema chaveia automaticamente para o Modo BLACKOUT.
+* A prioridade passa a ser a Operação Offline e a comunicação P2P entre dispositivos.
+* Neste estado, o sistema lê apenas o banco SQLite local e tenta localizar outras viaturas próximas para trocar "pacotes de saudação" via Wi-Fi Direct, garantindo que a informação circule mesmo no isolamento total.
+18 DADOS E MODELAGEM DA INFORMAÇÃO
+O sistema Integrated Police Interface (IPI) adota uma abordagem de modelagem distribuída, na qual os dados são estruturados de forma a manter leveza e, simultaneamente, preservar relações consistentes entre si.
+18.1 Modelo de Dados
+O modelo de dados do sistema CERNE foi concebido com base em uma abordagem relacional, sendo cuidadosamente otimizado tanto para o funcionamento do motor SQLite em dispositivos móveis quanto para a troca eficiente de informações por meio de comunicação binária utilizando o Protobuf. Nessa perspectiva, a arquitetura de dados foi estruturada de modo a privilegiar a autonomia local, assegurando que cada tablet armazene uma parcela significativa e funcional do banco de dados institucional da SSP-GO.
+Diagrama de Entidade e Relacionamento (DER):
+
+
+
+
+
+
+
+
+
+
+Principais Entidades e Atributos
+Entidade
+	Descrição
+	Atributos Principais
+	
+
+POLICIAL
+	Identifica o operador responsável pelas ações no sistema para fins de auditoria.
+	ID_Funcional (PK), Nome, Token_Biometrico, Unidade.
+	
+
+OCORRENCIA (RAI)
+	Armazena os registros de atendimento policial feitos em campo.
+	UUID (PK), Data_Hora, Latitude, Longitude, Descricao, Sync_Status.
+	
+
+VEÍCULO RESTRIÇÃO
+	Cache local de veículos com restrição de roubo ou furto na região de patrulha.
+	Placa (PK), Modelo, Cor, Motivo_Restricao, Data_Atualizacao.
+	
+
+PESSOA INTERESSE
+	Cache local de indivíduos com mandados de prisão ativos ou histórico criminal relevante.
+	CPF (PK), Nome, Alcunha, Status_Mandado, Foto_Base64.
+	
+
+18.2 Estrutura e Manipulação de Dados
+A manipulação da informação no IPI segue o princípio de Offline-First (priorização de estado offline).
+Armazenamento e Organização:
+* Banco Local: Os dados são persistidos no SQLite localmente com uma pequena fração de dados do banco de dados da Secretaria de Segurança Pública de Goiás (SSP GO). Optamos por um banco relacional local para permitir consultas complexas e rápidas sem uso de rede.
+* Criptografia: Os dados em repouso são protegidos por criptografia e controle de acesso.
+Lógica de Manipulação:
+1. Carga de Cache: Ao iniciar o turno em uma área com sinal, o sistema executa um comando SELECT no banco da SSP GO e um INSERT massivo no SQLite do dispositivo, baixando apenas os dados relacionados à região geográfica de atuação.
+2. Escrita Assíncrona: Quando o policial salva um relatório, o JavaScript executa a query localmente, em segundo plano, uma função monitora o estado dos dados e tenta realizar a sincronização assim que o nível de conectividade for estável.
+3. Minificação: Para a transmissão em níveis críticos, os dados da modelagem são mapeados para campos binários, garantindo que a estrutura da tabela seja respeitada mesmo em pacotes de poucos bytes.
+
+
+19 SOLUÇÃO TECNOLÓGICA E EXPERIMENTAÇÃO TÉCNICA INICIAL
+
+
+
+
+19.1 Escolhas Tecnológicas
+O aplicativo utiliza um stack focado em portabilidade e leveza. Frontend nativo web (HTML5, Vanilla JavaScript) sem frameworks pesados, estilizado com CSS puro (Tema Tático Dark), gerenciamento de estado offline via IndexedDB, e empacotamento cross-platform Mobile (Android/iOS) usando o Capacitor.
+
+
+19.2 Experimentação Técnica e Primeiros Testes
+Foram realizados testes de campo simulados, utilizando o aplicativo tanto em navegadores de desktop (emulando quedas de conexão via DevTools) quanto em builds (.apk) injetados via cabo USB em aparelhos Android físicos. Foram validados os fluxos de criação de Registro de Atendimento Integrado (RAI) e as consultas sem rede, confirmando que os dados ficam na fila do IndexedDB e são sincronizados corretamente assim que o app detecta retorno ao modo CLOUD.
+
+
+PARTE 05 – ARQUITETURA, TECNOLOGIA E IMPLEMENTAÇÃO EVOLUTIVA DO SISTEMA
+20 ARQUITETURA GERAL DO SISTEMA
+O sistema Integrated Police Interface (IPI) foi concebido como uma solução tecnológica voltada para resolver problemas de conectividade e acesso a dados enfrentados pelo Batalhão Rural do Estado de Goiás. O IPI atua como responsável por gerenciar a comunicação e o fluxo de dados entre os dispositivos utilizados pelas equipes policiais e os sistemas institucionais da Secretaria de Segurança Pública de Goiás (SSP GO).
+A principal proposta da arquitetura é permitir que as operações policiais continuem funcionando mesmo em cenários de baixa conectividade ou ausência total de internet. Para isso, o sistema foi estruturado de forma distribuída, utilizando estratégias de armazenamento local, comunicação ponto a ponto (P2P), persistência e transmissão assíncrona de dados.
+A arquitetura geral do sistema foi organizada em camadas que se comunicam entre si, permitindo maior modularidade, facilidade de manutenção e adaptação a diferentes condições de rede.
+20.1 ESTRUTURA EM CAMADAS DA ARQUITETURA
+  
+
+                 A arquitetura do IPI foi estruturada em quatro camadas principais:
+   20.1.1 INTERFACE
+Responsável pela interação direta com o usuário, permitindo que os policiais registrem relatórios, consultem informações e acompanhem o estado da sincronização de dados.
+   20.1.2 LÓGICA DE APLICAÇÃO
+Responsável por controlar o comportamento do sistema, incluindo decisões relacionadas à conectividade, armazenamento local de dados e sincronização com outros dispositivos ou servidores.
+   20.1.3 COMUNICAÇÃO
+Responsável por gerenciar a troca de dados entre dispositivos próximos e com os servidores centrais da SSP GO.
+   20.1.4 PERSISTÊNCIA DE DADOS
+Responsável pelo armazenamento local e temporário das informações coletadas durante as operações policiais, garantindo funcionamento mesmo em ambientes sem conectividade.
+Essa divisão permite que cada camada possa possuir responsabilidades específicas, facilitando a evolução do sistema e a manutenção do código ao longo do desenvolvimento do projeto.
+20.2 MODELO DE CONECTIVIDADE DO SISTEMA
+O sistema IPI foi projetado para operar em diferentes cenários de conectividade, variando desde ambientes com internet ou rede móvel estável até situações de isolamento total de sinal. Para isso, a arquitetura considera três níveis de estado de rede.
+  
+
+   20.2.1 CLOUD
+Quando existe conexão estável com redes 4g, 5g ou wifi, o sistema realiza comunicação completa com os servidores da Secretaria de Segurança Pública, permitindo atualização em tempo real das informações e persistência de uma pequena fração de dados localmente relacionados ao local da próxima operação.
+   20.2.2 FALLBACK
+Em situações em que o sinal de rede é baixíssimo, o sistema converte consultas em mensagens codificadas enviadas por Short Message Service (SMS) para um gateway central, que processa a solicitação e retorna a resposta. A comunicação por SMS é ideal nesse cenário, porque prevalece em áreas de sinal crítico devido à sua arquitetura de baixa camada e comutação por circuitos.
+   20.2.3 BLACKOUT
+Quando não há qualquer tipo de sinal, o sistema opera completamente offline, utilizando apenas dados armazenados localmente e realizando trocas de informações diretamente entre dispositivos próximos. Utilizando os dados persistidos localmente do banco de dados da SSP GO antes da perda de sinal e também dos dados compartilháveis por proximidade dos demais dispositivos policiais próximos.
+Esse modelo garante continuidade operacional em áreas remotas, característica essencial para o patrulhamento rural em zonas sem disponibilidade de sinal estável.
+20.3 ARMAZENAMENTO LOCAL E OPERAÇÃO OFFLINE
+Como as operações do Batalhão Rural de Goiás frequentemente ocorrem em áreas sem cobertura de internet e/ou rede, o sistema foi projetado para funcionar prioritariamente em modo offline. Nesse modelo, todos os relatórios registrados pelos policiais são armazenados localmente no dispositivo até que seja possível realizar a sincronização com os servidores via rede. Além disso, o sistema utiliza um mecanismo de cache inteligente que mantém os dados no banco de dados da SSP GO (armazenamento local), com informações relevantes para a região onde a equipe irá atuar. Esse processo permite que consultas importantes sejam realizadas mesmo sem acesso à internet.
+20.4 SEGURANÇA E INTEGRIDADE DOS DADOS
+Devido à natureza sensível das informações utilizadas pelo sistema, foram adotadas diversas medidas de segurança para garantir a proteção dos dados.
+Entre os principais mecanismos implementados estão:
+* Criptografia de dados armazenados localmente;
+* Autenticação de usuários antes do acesso às informações offline;
+* Registro de logs de auditoria para todas as consultas realizadas;
+* Sincronização segura com os servidores institucionais.
+Esses mecanismos garantem que o sistema mantenha a integridade das informações mesmo em cenários de conectividade limitada.
+21 TECNOLOGIAS E FERRAMENTAS DO PROJETO
+Para o desenvolvimento do sistema IPI (Integrated Police Interface) foi definida uma stack tecnológica focada em eficiência, compatibilidade com dispositivos móveis e capacidade de operação offline. As tecnologias escolhidas permitem que o sistema funcione em tablets ou smartphones utilizados pelas equipes policiais.
+21.1 INTERFACE
+A interface do sistema será desenvolvida utilizando tecnologias web juntamente com um executor de código aberto, para utilizar como aplicação nativa, garantindo compatibilidade com diversos dispositivos e estados de rede disponíveis.
+* HTML5 - Estruturação de páginas web;
+* CSS3/Bootstrap - Estilização da interface;
+* Javascript - Lógica da interface, comunicação com o hardware, 
+* Capacitor (Ionic) - executor de código aberto criado pela Ionic, transforma o projeto com tecnologias web em um aplicativo mobile (android) nativo.
+21.2 LÓGICA DA APLICAÇÃO
+A lógica da aplicação será responsável por processar as regras de negócio, gerenciar a comunicação com os dispositivos utilizados pelas equipes policiais e realizar a integração com os sistemas institucionais da Secretaria de Segurança Pública de Goiás (SSP GO). Essa camada atua como intermediária entre a interface do sistema e os serviços centrais, garantindo que os dados enviados pelas viaturas sejam validados, processados e armazenados de forma segura. Para o desenvolvimento da camada foram escolhidas tecnologias amplamente utilizadas no desenvolvimento de aplicações web modernas, priorizando desempenho, simplicidade de implementação e facilidade de manutenção.
+* Javascript - gerenciar a inteligência de conectividade, realizar a serialização de dados via Protocol Buffers para economia de banda, coordenar o armazenamento criptografado no banco de dados local e orquestrar as tarefas de sincronização em segundo plano.
+21.3 PERSISTÊNCIA E CONECTIVIDADE
+Para garantir a integridade da informação em cenários de isolamento digital e sinal crítico, o sistema utiliza uma arquitetura de persistência, resiliência e protocolos de comunicação com baixo uso de dados.
+* SQLite - Armazenamento de longo prazo no dispositivo. Permite a persistência de grandes volumes de dados criptografados. Isso garante que, mesmo em caso de perda ou furto do equipamento, os dados sensíveis permaneçam inacessíveis sem as chaves institucionais.
+22 IMPLEMENTAÇÃO POR CAMADAS DO SISTEMA
+22.1 Frontend
+A implementação do frontend do sistema Interface Policial Integrada (IPI) concentrou-se no desenvolvimento das funcionalidades essenciais definidas nos requisitos funcionais iniciais do projeto. Nesta etapa, foram implementados principalmente os quatro primeiros requisitos, considerados o núcleo da solução proposta: Registro de Atendimento Integrado (RAI) Offline, Consulta de Veículos e Pessoas em Cache, Sincronização Automática de Dados e o gerenciamento de conectividade entre os modos de operação.
+Essas funcionalidades representam a base operacional do sistema e foram projetadas para oferecer suporte direto aos policiais militares que atuam em áreas rurais do estado de Goiás, onde frequentemente há limitações de conectividade e infraestrutura. A proposta central do sistema é facilitar o envio e o recebimento de informações em ambientes com baixa disponibilidade de rede, utilizando recursos locais e estratégias de sincronização eficiente, contribuindo para a redução de falhas operacionais e maior agilidade na tomada de decisões.
+A relação entre as funcionalidades implementadas e os requisitos definidos é direta, uma vez que o sistema foi concebido com foco em resolver problemas reais enfrentados no campo. O uso de armazenamento local (cache), aliado à sincronização automática quando há conectividade disponível, garante a continuidade do serviço mesmo em cenários adversos, tornando a operação mais eficiente, precisa e confiável.
+Estrutura do código
+O frontend foi desenvolvido com base nas três tecnologias fundamentais da web: HTML, CSS e JavaScript, organizadas de forma modular e separadas em arquivos distintos, o que contribui para melhor manutenção, escalabilidade e legibilidade do código.
+* HTML: Estruturado em um único arquivo principal, contendo a organização das telas e componentes da aplicação. Foram utilizados identificadores (IDs) e classes com nomenclaturas intuitivas, facilitando a identificação dos elementos e a integração com os scripts JavaScript.
+* CSS: Responsável pela estilização da interface, com foco em usabilidade e acessibilidade em campo. Foram adotados elementos visuais de fácil leitura, botões com dimensões adequadas para uso em dispositivos móveis e cores contrastantes inspiradas na identidade visual da Polícia Militar Rural, garantindo clareza e rapidez na interação.
+* JavaScript: Responsável pela lógica da aplicação e pela interatividade do sistema. Entre as principais funcionalidades implementadas estão:
+   * Captura de localização via GPS sob demanda
+   * Módulo de mapa interativo (renderização, busca de locais e cálculo de rotas)
+   * Gerenciamento de conectividade (modo nuvem, contingência e offline)
+   * Integração com o banco de dados local
+   * Execução de buscas (veículos e pessoas)
+   * Controle de navegação entre telas (SPA)
+   * Alternância de tema (modo diurno/noturno automático)
+Essa organização permite uma separação clara de responsabilidades, reduzindo a complexidade do sistema e facilitando futuras manutenções e expansões.
+Evidências de funcionamento
+O funcionamento do sistema pode ser evidenciado por meio dos seguintes fluxos operacionais:
+* Registro de atendimento integrado (RAI): o usuário preenche os dados, opcionalmente captura a localização e salva a ocorrência, que é armazenada localmente e sincronizada automaticamente quando há conexão disponível.
+* Consulta tática: o usuário realiza buscas por veículos ou pessoas, com retorno baseado no cache local ou servidor, dependendo do modo de conectividade.
+* Navegação e roteamento geográfico: o usuário visualiza sua posição atual no mapa por GPS, realiza a busca por um destino e o sistema calcula e plota a rota ideal em tempo real, exibindo a distância e o tempo estimado de deslocamento.
+* Gerenciamento de conectividade: o sistema alterna automaticamente entre modos de operação (nuvem, contingência e offline), informando o usuário por meio da interface visual.
+Esses fluxos demonstram a integração entre interface, lógica e armazenamento, garantindo o funcionamento contínuo do sistema mesmo em cenários com limitações de infraestrutura.
+Considerações finais da implementação
+A implementação do frontend foi orientada não apenas pela busca de soluções tecnicamente eficientes, mas também pela viabilidade prática e econômica. O sistema foi projetado para funcionar em condições reais de uso, evitando dependências excessivas de infraestrutura e priorizando tecnologias acessíveis.
+Dessa forma, o IPI se posiciona como uma solução aplicável ao contexto da segurança pública rural, com potencial de evolução contínua conforme novas necessidades operacionais forem identificadas.
+  
+
+  
+
+ 
+  
+
+  
+
+  
+
+  
+
+Implementação do RF001
+Evidência de funcionamento: Durante a simulação do modo Blackout (offline), o sistema indica claramente ao usuário a ausência de conexão. Nesse estado, todas as informações inseridas são armazenadas localmente no dispositivo (cache), sem perda de dados.
+Ao concluir o preenchimento, a ocorrência é armazenada localmente com sucesso, permanecendo disponível para sincronização automática assim que a conexão com a internet for restabelecida.
+
+
+    
+  
+
+Implementação do RF002
+Evidência de funcionamento: Na tela de consultas, o usuário consegue realizar buscas mesmo sem conexão com a internet. Os resultados são retornados a partir do cache local, possibilitando a verificação de restrições, mandados ou informações relevantes diretamente no dispositivo.
+  
+
+Implementação do RF003
+Evidência de funcionamento: Ao restabelecer a conexão, o sistema inicia automaticamente o processo de sincronização, enviando as ocorrências registradas offline sem necessidade de ação do usuário. O processo é acompanhado por indicadores visuais e mensagens de confirmação.
+  
+
+  
+
+Implementação do RF004
+Evidência de funcionamento: Foi implementado um modo de contingência que simula ambiente com sinal degradado. Nesse modo, o sistema alterna para operação via SMS, onde as consultas são enviadas e aguardam retorno por mensagens de texto, representando o funcionamento esperado em ambiente real.
+     
+Implementação do RF005
+Situação atual: Este requisito ainda não foi finalizado nesta fase do projeto. Devido à sua maior complexidade técnica, especialmente relacionada ao armazenamento e renderização de mapas offline, sua implementação completa foi planejada para a próxima etapa do desenvolvimento, visando garantir desempenho adequado e qualidade na entrega. Entretanto já é possível visualizar o mapa conectado com a internet, podendo ser realizadas buscas e traçadas melhores rotas para se chegar ao local desejado, além de mostrar o tempo de deslocamento e distância aproximada.
+22.2 Backend
+O backend do sistema Integrated Police Interface (IPI) é concebido como um elemento central de orquestração, responsável por garantir a resiliência operacional da solução. Posicionado entre a interface utilizada pelos agentes em campo e os sistemas centrais da SSP-GO, esse componente adota o paradigma Offline-First como princípio estruturante, assegurando a continuidade das operações mesmo em cenários de conectividade limitada ou inexistente.
+Essa camada concentra o processamento das regras de negócio e o gerenciamento dinâmico do fluxo de dados. Por meio de rotinas desenvolvidas em JavaScript, o sistema realiza o monitoramento contínuo das interfaces de rede, possibilitando a comutação automática entre diferentes modos de operação: Cloud (4G/5G/Wi-Fi), Fallback (via SMS codificado) e Blackout (totalmente offline). Essa lógica adaptativa permite que o sistema se ajuste, em tempo real, às condições de comunicação disponíveis.
+Com o objetivo de evitar perda de informações, o backend implementa um mecanismo de fila de sincronização assíncrona, no qual os dados registrados offline são temporariamente armazenados e posteriormente transmitidos de forma automática à central, assim que a conectividade é restabelecida de maneira estável. Em cenários de isolamento crítico, caracterizados pelo modo Blackout, são ativados protocolos de comunicação ponto a ponto (P2P), viabilizando a troca direta de dados entre viaturas por meio de tecnologias como Wi-Fi Direct ou redes Mesh.
+No que se refere à eficiência no processamento e transmissão, o sistema adota o uso de Protocol Buffers (Protobuf) para serialização de dados em formato binário, reduzindo significativamente o volume das mensagens e tornando viável sua transmissão mesmo em redes de baixa capacidade, como 2G ou SMS. Adicionalmente, ao início de cada turno operacional, o backend executa um processo de pré-carregamento inteligente de dados, realizando inserções em larga escala no banco local com informações relevantes à área de atuação, como mandados e registros de veículos.
+A persistência dos dados é assegurada pelo uso do SQLite, integrado a mecanismos de criptografia de nível institucional, garantindo que informações sensíveis permaneçam protegidas mesmo em situações de perda ou comprometimento do dispositivo. Dessa forma, o sistema preserva não apenas a segurança, mas também a integridade e a rastreabilidade jurídica dos dados coletados em campo, atendendo às exigências de auditoria e confiabilidade institucional.
+
+
+22.3 Integração
+A camada de integração do IPI funciona como um mecanismo de comunicação resiliente, responsável por conectar a aplicação móvel tanto aos sistemas centrais da SSP-GO quanto a outros dispositivos em campo. Baseada no uso de Protocol Buffers (Protobuf), essa camada garante a transmissão eficiente de dados, mesmo em redes de baixa velocidade ou via SMS no modo Fallback.
+Além da integração com a nuvem, o sistema incorpora comunicação direta entre dispositivos (P2P), permitindo a troca de informações entre viaturas próximas em cenários sem conectividade (Modo Blackout). Todo esse processo é gerenciado por rotinas em JavaScript, que controlam a alternância de redes e a sincronização assíncrona dos dados.
+Dessa forma, assegura-se que todas as informações coletadas em campo sejam posteriormente integradas ao sistema central com segurança, integridade e confiabilidade jurídica.
+
+
+
+
+
+
+23 ORGANIZAÇÃO DO CÓDIGO E REPOSITÓRIO
+O projeto está salvo via GitHub, através do link: https://github.com/integratedPoliceInterface/ipi_mvp_capacitor.git.
+O projeto foi estruturado com base em uma arquitetura do tipo Web Híbrido, utilizando o Capacitor como ponte para a execução em dispositivos móveis. A implementação apoia-se em tecnologias consolidadas como Vanilla JavaScript, HTML5 e CSS3, priorizando simplicidade, controle direto do código e eficiência no desempenho da aplicação.
+A organização do repositório seguiu o princípio de separação de responsabilidades (Separation of Concerns), distribuindo as funcionalidades em módulos bem definidos. Essa abordagem contribui para maior clareza estrutural, facilita a manutenção do código e possibilita a evolução incremental do sistema sem comprometer sua estabilidade.
+Tal estrutura foi concebida considerando, sobretudo, o requisito central da aplicação: operar de forma confiável em cenários Offline-First. Dessa maneira, a modularização e a escolha tecnológica adotadas asseguram que o sistema mantenha seu pleno funcionamento mesmo na ausência de conectividade, garantindo continuidade operacional nas atividades em campo.
+a) Estrutura de Pastas
+A estrutura principal do repositório está focada na divisão clara entre configurações de infraestrutura (pacotes, build, capacitor) e o código da aplicação em si (/www):
+Nível / Pasta
+	Arquivo / Subpasta
+	Responsabilidade
+	Descrição Detalhada
+	        
+Raiz do Projeto
+
+
+	android/
+	
+
+Nativo
+
+
+	Código-fonte gerado pelo Capacitor para a plataforma Android.
+	
+
+
+
+
+
+
+
+
+
+	node_modules/
+	Bibliotecas
+	Módulos e dependências instaladas via NPM (ecossistema Node).
+	
+
+	capacitor.config.json
+	Integração
+	Configuração da ponte entre a Web View e o hardware mobile
+	
+
+	package.json
+	Gestão
+	Manifesto de dependências e scripts de automação do projeto.
+	
+
+	LEIA-ME.md
+	Documentação
+	Guia técnico principal e instruções para desenvolvedores.
+	www/ 
+(Núcleo)
+	index.html
+	Interface Shell
+	Estrutura principal da SPA (Single Page Application).
+	
+
+	css/styles.css
+	Identidade Visual
+	Estilização unificada sob o conceito "Tactical Dark Theme".
+	
+
+	img/
+	Assets
+	Repositório de ícones, logotipos e elementos visuais estáticos.
+	
+
+	tiles/
+	Mapas
+	Arquivos de cartografia local para navegação em modo offline.
+	
+
+	proto/
+	Serialização
+	Arquivos de definição Protobuf para tráfego de dados otimizado.
+	www/js/
+(Lógica)
+	aparencia.js
+	UI/UX
+	Controle de transições, animações, menus e componentes de tela.
+	
+
+	app.js
+	Orquestrador
+	Ponto de entrada que liga a interface aos eventos de negócio.
+	
+
+	conectividade.js
+	Rede
+	Gestor de estados: Online (Cloud), Híbrido ou Offline total.
+	
+
+	configSupabase.js
+	Backend
+	Configurações de conexão com o banco de dados Supabase (BaaS).
+	
+
+
+
+	db.js
+	Persistência
+	Camada de controle do IndexedDB para armazenamento no dispositivo.
+	
+
+	servicoBusca.js
+	Consultas
+	Lógica de busca de indivíduos e veículos (Busca Híbrida).
+	
+
+	servicoSincronizacao.js
+	Sync Engine
+	Worker que processa a fila de dados para envio ao servidor.
+	
+
+	mapa.js
+	Mapeamento
+	Processa o mapa-múndi, localiza o usuário, pesquisa locais e desenha as melhores rotas 
+	
+
+b) Separação de Responsabilidades e Modularidade
+Para manutenibilidade contínua, o grupo abriu mão de códigos "espaguete" em um único arquivo JS e adotou uma modularização semântica de regras de negócio:
+* Camada de Visualização (View / UI): Centralizada no index.html e styles.css. Não existem regras restritas de banco de dados diretamente misturadas à UI. Funções visuais ficam em aparencia.js e app.js.
+* Camada de Persistência Local: Toda a responsabilidade de gerenciar dados de veículos, pessoas, RAI’s e mapas no modo offline é exclusiva do arquivo db.js (IndexedDB).
+* Camada de Integração na Nuvem: O configSupabase.js age como o provedor de banco de dados em nuvem, e o servicoBusca.js implementa as rotinas que alternam entre pesquisar ativamente no Supabase ou cair em "Fallback" consultando o IndexedDB dependendo do estado da rede.
+* Camada de Rede (Network Manager): Extraída inteiramente para conectividade.js e servicoSincronizacao.js, removendo a lógica de rede do app.js.
+c) Padrões Adotados pelo Grupo
+* Offline-First & Degradação Graciosa: O código prioriza o funcionamento de operações locais e sincroniza silenciosamente os dados gerados (RAIs e Geolocalizações) assim que uma conexão de rede se estabiliza. Isso fica evidente nos listeners de status de rede aplicados e nos workers isolados de sincronização.
+* Modularização Vanilla: Em vez de depender de frameworks complexos desnecessários na etapa atual, o projeto encapsula funcionalidades nativas (export/import em JavaScript) para permitir testes diretos no browser (sem build) e debug facilitado, permitindo que cada dev cuidasse de um módulo distinto.
+* Single Page Application (SPA Simples): O index.html atua como casca (Shell), com visualizações ativadas/desativadas através do DOM via app.js e aparencia.js, garantindo navegação de alta fluidez em ambientes de baixo processamento das viaturas.
+* Controle de Versão: Uso de Git na raiz do projeto (como notado na existência da .git), que acompanha e isola perfeitamente os artefatos temporários (node_modules / IDEs e builds de app), focando em empurrar à branch principal apenas as interfaces (www) e configurações base.
+Esta organização garante ampla clareza para integração de novas Features (ou novos integrantes) e providencia o alicerce enxuto exigido para a fase MVP do software IPI.
+
+
+PARTE 06 – QUALIDADE, SEGURANÇA, AVALIAÇÃO E EXTENSÕES DO PROJETO
+
+
+24 QUALIDADE DO SOFTWARE E TESTES
+
+
+
+
+25 SEGURANÇA DA INFORMAÇÃO
+
+
+
+
+26 EXTENSÕES E TECNOLOGIAS COMPLEMENTARES
+
+
+
+
+27 AVALIAÇÃO GERAL DO PROJETO INTEGRADOR

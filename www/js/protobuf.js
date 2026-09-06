@@ -78,13 +78,15 @@ function serializarRAI(ocorrencia) {
         });
 
         const buffer = RAI.encode(mensagem).finish();
+        const jsonStr = JSON.stringify(ocorrencia);
+        const tamanhoOriginal = new TextEncoder().encode(jsonStr).length;
 
         return {
             buffer,
             base64: btoa(String.fromCharCode(...new Uint8Array(buffer))),
-            tamanhoOriginal: JSON.stringify(ocorrencia).length,
+            tamanhoOriginal,
             tamanhoCompactado: buffer.length,
-            economia: ((1 - buffer.length / JSON.stringify(ocorrencia).length) * 100).toFixed(1)
+            economia: ((1 - buffer.length / tamanhoOriginal) * 100).toFixed(1)
         };
     } catch (e) {
         console.error('[Protobuf] Erro ao serializar RAI:', e);
@@ -113,7 +115,7 @@ function serializarConsulta(tipo, parametros) {
     }
 }
 
-async function serializarRAIEnriquecido(ocorrencia) {
+function serializarRAIEnriquecido(ocorrencia) {
     const resultado = serializarRAI(ocorrencia);
 
     if (resultado) {

@@ -1585,7 +1585,9 @@ img {
 }
 
 body:has(#tela-login.ativa) #status-barra,
-body:has(#tela-login.ativa) #navegacao-inferior {
+body:has(#tela-login.ativa) #navegacao-inferior,
+body.modo-login #status-barra,
+body.modo-login #navegacao-inferior {
     display: none;
 }
 
